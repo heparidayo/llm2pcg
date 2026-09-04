@@ -1,5 +1,7 @@
 # LLM2PCG
 
+[English](README.md) | [한국어](README.ko.md)
+
 LLM2PCG is a portfolio-ready, deterministic procedural world-generation prototype. A validated JSON request selects one of seven generators and produces reproducible world data that can be rendered in a browser or inside Unity 6.
 
 This repository is currently a **private release candidate**. It deliberately contains no commercial art packs, private AI source images, internal documents, presentations, screenshots, editor-agent configuration, conversation logs, or credentials.
