@@ -2,9 +2,7 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-LLM2PCG는 포트폴리오 목적으로 정리한 결정론적 절차 생성(PCG) 프로토타입입니다. 검증된 JSON 요청이 일곱 가지 생성기 중 하나를 선택하며, 같은 요청과 seed로 브라우저와 Unity 6에서 재현 가능한 월드 데이터를 생성합니다.
-
-이 저장소는 현재 **비공개 릴리스 후보**입니다. 상용 아트 팩, 비공개 AI 원본 이미지, 내부 문서, 발표 자료, 스크린샷, 에디터·에이전트 설정, 내부 채팅 원문, 인증 정보는 포함하지 않습니다.
+LLM2PCG는 JSON 요청을 기반으로 여러 형태의 월드를 생성하는 결정론적 절차 생성(PCG) 프로젝트입니다. 같은 요청과 seed를 사용하면 동일한 월드 데이터와 해시를 재현할 수 있으며, 결과는 브라우저 또는 Unity 6에서 확인할 수 있습니다.
 
 ## 아키텍처
 
@@ -69,13 +67,13 @@ pwsh -File ./Scripts/Start-StandaloneWeb.ps1
 
 ## Unity 패키지로 재사용
 
-공개 tag를 만든 후에는 다음 형식의 Git URL을 사용해 Unity Package Manager에서 패키지 하위 폴더만 설치할 수 있습니다.
+다음 형식의 Git URL을 사용하면 Unity Package Manager에서 패키지 하위 폴더만 설치할 수 있습니다. 특정 버전을 사용하려면 URL 끝의 `<tag>`를 실제 tag로 바꿉니다.
 
 ```text
 https://github.com/heparidayo/llm2pcg.git?path=/Packages/com.heparidayo.llm2pcg#<tag>
 ```
 
-그전에는 clone한 저장소의 `Packages/com.heparidayo.llm2pcg`를 local package로 추가할 수 있습니다.
+또는 clone한 저장소의 `Packages/com.heparidayo.llm2pcg`를 local package로 추가할 수 있습니다.
 
 ## 저장소 구성
 
@@ -85,5 +83,3 @@ https://github.com/heparidayo/llm2pcg.git?path=/Packages/com.heparidayo.llm2pcg#
 - `Web`: Three.js 브라우저 렌더러와 선택적 prompt adapter
 - `Shared`: version이 명시된 JSON Schema와 JavaScript validator/default
 - `Scripts`: clone 검증과 로컬 실행 스크립트
-
-이 비공개 후보에는 아직 오픈소스 라이선스가 지정되지 않았습니다. GitHub 저장소를 Public으로 전환하기 전에 최종 라이선스를 선택해 추가해야 합니다.
