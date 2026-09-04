@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://llm2pcg.local/schema/pcg-request.schema.json",
+  "title": "LLM2PCG request v3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generatorVersion", "seed", "worldType", "biome", "generationProfile", "mapWidth", "mapHeight", "generatorSettings", "propSettings", "visualSettings", "presentationSettings", "layoutSettings", "specialRooms"],
+  "properties": {
+    "schemaVersion": { "const": 3 },
+    "generatorVersion": { "type": "string", "enum": ["dungeon-bsp@1", "cave-cellular@1", "forest-biome@1", "city-hybrid-wfc@1", "swamp-biome@1", "snowfield-biome@1", "desert-biome@1"] },
+    "seed": { "type": "integer" },
+    "worldType": { "type": "string", "enum": ["Dungeon", "Cave", "Forest", "City", "Swamp", "Snowfield", "Desert"] },
+    "biome": { "type": "string", "enum": ["Stone", "Temperate", "Wetland", "Arctic", "Arid"] },
+    "generationProfile": { "type": "string", "enum": ["DefaultDungeon", "CompactDungeon", "SprawlingDungeon", "DefaultCave", "CavernousCave", "TightCave", "DefaultForest", "DenseForest", "MeadowForest", "DefaultCity", "GridCity", "OrganicCity", "DefaultSwamp", "OpenMarsh", "DenseBog", "DefaultSnowfield", "SparseTundra", "FrozenGrove", "DefaultDesert", "DuneSea", "OasisDesert"] },
+    "mapWidth": { "type": "integer", "minimum": 16, "maximum": 500 },
+    "mapHeight": { "type": "integer", "minimum": 16, "maximum": 500 },
+    "generatorSettings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dungeon", "cave", "forest", "city"],
+      "properties": {
+        "dungeon": { "anyOf": [{ "$ref": "#/$defs/dungeonSettings" }, { "type": "null" }] },
+        "cave": { "anyOf": [{ "$ref": "#/$defs/caveSettings" }, { "type": "null" }] },
+        "forest": { "anyOf": [{ "$ref": "#/$defs/forestSettings" }, { "type": "null" }] },
+        "city": { "anyOf": [{ "$ref": "#/$defs/citySettings" }, { "type": "null" }] }
+      }
+    },
+    "propSettings": { "$ref": "#/$defs/propSettings" },
+    "visualSettings": { "$ref": "#/$defs/visualSettings" },
+    "presentationSettings": { "$ref": "#/$defs/presentationSettings" },
+    "layoutSettings": { "$ref": "#/$defs/layoutSettings" },
+    "specialRooms": { "anyOf": [{ "$ref": "#/$defs/specialRooms" }, { "type": "null" }] }
+  },
+  "$defs": {
+    "dungeonSettings": { "type": "object", "additionalProperties": false, "required": ["maxDepth", "minLeafSize"], "properties": { "maxDepth": { "type": "integer", "minimum": 1, "maximum": 12 }, "minLeafSize": { "type": "integer", "minimum": 3, "maximum": 200 } } },
+    "caveSettings": { "type": "object", "additionalProperties": false, "required": ["fillPercent", "automataSteps", "minimumRegionSize", "tunnelRadius", "extraTunnelCount"], "properties": { "fillPercent": { "type": "integer", "minimum": 20, "maximum": 80 }, "automataSteps": { "type": "integer", "minimum": 1, "maximum": 12 }, "minimumRegionSize": { "type": "integer", "minimum": 1, "maximum": 1000 }, "tunnelRadius": { "type": "integer", "minimum": 1, "maximum": 5 }, "extraTunnelCount": { "type": "integer", "minimum": 0, "maximum": 16 } } },
+    "forestSettings": { "type": "object", "additionalProperties": false, "required": ["waterThreshold", "noiseOctaves", "clearingRadius", "vegetationMinDistance", "vegetationMaxCount", "elevationScale", "elevationFrequency"], "properties": { "waterThreshold": { "type": "number", "minimum": 0, "maximum": 1 }, "noiseOctaves": { "type": "integer", "minimum": 1, "maximum": 8 }, "clearingRadius": { "type": "number", "exclusiveMinimum": 0, "maximum": 64 }, "vegetationMinDistance": { "type": "number", "exclusiveMinimum": 0, "maximum": 32 }, "vegetationMaxCount": { "type": "integer", "minimum": 0, "maximum": 10000 }, "elevationScale": { "type": "number", "exclusiveMinimum": 0, "maximum": 64 }, "elevationFrequency": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 } } },
+    "citySettings": { "type": "object", "additionalProperties": false, "required": ["hubMinDistance", "hubMaxCount", "roadWidth", "extraLoopCount", "wfcBacktrackLimit", "wfcRestartLimit", "buildingMinHeight", "buildingMaxHeight"], "properties": { "hubMinDistance": { "type": "number", "exclusiveMinimum": 0, "maximum": 128 }, "hubMaxCount": { "type": "integer", "minimum": 2, "maximum": 64 }, "roadWidth": { "type": "integer", "minimum": 1, "maximum": 8 }, "extraLoopCount": { "type": "integer", "minimum": 0, "maximum": 32 }, "wfcBacktrackLimit": { "type": "integer", "minimum": 0, "maximum": 10000 }, "wfcRestartLimit": { "type": "integer", "minimum": 0, "maximum": 32 }, "buildingMinHeight": { "type": "number", "minimum": 1, "maximum": 128 }, "buildingMaxHeight": { "type": "number", "minimum": 1, "maximum": 128 } } },
+    "propSettings": { "type": "object", "additionalProperties": false, "required": ["enabled", "density", "maxCount", "allowedTypes"], "properties": { "enabled": { "type": "boolean" }, "density": { "type": "number", "minimum": 0, "maximum": 1 }, "maxCount": { "type": "integer", "minimum": 0 }, "allowedTypes": { "type": "array", "items": { "type": "string", "enum": ["Pillar", "Crate", "Crystal", "Torch"] } } } },
+    "visualSettings": { "type": "object", "additionalProperties": false, "required": ["trees", "rocks", "bushes", "groundDetails", "waterProps"], "properties": { "trees": { "$ref": "#/$defs/treeVisualSettings" }, "rocks": { "$ref": "#/$defs/rockVisualSettings" }, "bushes": { "$ref": "#/$defs/bushVisualSettings" }, "groundDetails": { "$ref": "#/$defs/groundVisualSettings" }, "waterProps": { "$ref": "#/$defs/waterVisualSettings" } } },
+    "presentationSettings": { "type": "object", "additionalProperties": false, "required": ["geometryMode", "propsEnabled"], "properties": { "geometryMode": { "type": "string", "enum": ["Voxel", "Surface"] }, "propsEnabled": { "type": "boolean" } } },
+    "treeVisualSettings": { "type": "object", "additionalProperties": false, "required": ["density", "maxCount", "allowedTypes"], "properties": { "density": { "type": "number", "minimum": 0, "maximum": 1 }, "maxCount": { "type": "integer", "minimum": 0, "maximum": 10000 }, "allowedTypes": { "type": "array", "items": { "type": "string", "enum": ["cherry_blossom", "broadleaf", "conifer", "willow", "dead_tree", "palm", "cactus"] } } } },
+    "rockVisualSettings": { "type": "object", "additionalProperties": false, "required": ["density", "maxCount", "allowedTypes"], "properties": { "density": { "type": "number", "minimum": 0, "maximum": 1 }, "maxCount": { "type": "integer", "minimum": 0, "maximum": 10000 }, "allowedTypes": { "type": "array", "items": { "type": "string", "enum": ["rock", "ice"] } } } },
+    "bushVisualSettings": { "type": "object", "additionalProperties": false, "required": ["density", "maxCount", "allowedTypes"], "properties": { "density": { "type": "number", "minimum": 0, "maximum": 1 }, "maxCount": { "type": "integer", "minimum": 0, "maximum": 10000 }, "allowedTypes": { "type": "array", "items": { "type": "string", "enum": ["bush", "reeds"] } } } },
+    "groundVisualSettings": { "type": "object", "additionalProperties": false, "required": ["density", "maxCount", "allowedTypes"], "properties": { "density": { "type": "number", "minimum": 0, "maximum": 1 }, "maxCount": { "type": "integer", "minimum": 0, "maximum": 10000 }, "allowedTypes": { "type": "array", "items": { "type": "string", "enum": ["grass", "flower", "plant", "mushroom", "stump", "log", "branch", "thorn"] } } } },
+    "waterVisualSettings": { "type": "object", "additionalProperties": false, "required": ["density", "maxCount", "allowedTypes"], "properties": { "density": { "type": "number", "minimum": 0, "maximum": 1 }, "maxCount": { "type": "integer", "minimum": 0, "maximum": 10000 }, "allowedTypes": { "type": "array", "items": { "type": "string", "enum": ["lily_pad", "water_lily", "reeds", "palm", "ice"] } } } },
+    "layoutSettings": { "type": "object", "additionalProperties": false, "required": ["landform", "water", "route"], "properties": { "landform": { "$ref": "#/$defs/landformLayout" }, "water": { "$ref": "#/$defs/waterLayout" }, "route": { "$ref": "#/$defs/routeLayout" } } },
+    "landformLayout": { "type": "object", "additionalProperties": false, "required": ["kind", "placement", "size", "intensity"], "properties": { "kind": { "const": "None" }, "placement": { "const": "Seeded" }, "size": { "const": "Medium" }, "intensity": { "const": "Medium" } } },
+    "waterLayout": { "type": "object", "additionalProperties": false, "required": ["kind", "placement", "size", "meander", "exclusive"], "properties": { "kind": { "const": "Default" }, "placement": { "const": "Seeded" }, "size": { "const": "Medium" }, "meander": { "const": "Low" }, "exclusive": { "const": false } } },
+    "routeLayout": { "type": "object", "additionalProperties": false, "required": ["kind", "placement", "size", "orientation", "meander"], "properties": { "kind": { "const": "Default" }, "placement": { "const": "Seeded" }, "size": { "const": "Medium" }, "orientation": { "const": "Seeded" }, "meander": { "const": "Low" } } },
+    "roomSetting": { "type": "object", "additionalProperties": false, "required": ["enabled", "count", "placement"], "properties": { "enabled": { "type": "boolean" }, "count": { "type": "integer", "minimum": 0 }, "placement": { "type": "string", "minLength": 1 } } },
+    "specialRooms": { "type": "object", "additionalProperties": false, "required": ["boss", "treasure", "shop", "secret"], "properties": { "boss": { "$ref": "#/$defs/roomSetting" }, "treasure": { "$ref": "#/$defs/roomSetting" }, "shop": { "$ref": "#/$defs/roomSetting" }, "secret": { "$ref": "#/$defs/roomSetting" } } }
+  }
+}

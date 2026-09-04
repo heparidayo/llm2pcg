@@ -1,0 +1,21 @@
+{
+  "name": "Llm2Pcg.EditModeTests",
+  "rootNamespace": "Llm2Pcg.Tests.EditMode",
+  "references": [
+    "Llm2Pcg.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

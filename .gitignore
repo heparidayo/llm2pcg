@@ -1,0 +1,15 @@
+.vs/
+.idea/
+.vscode/
+Library/
+Temp/
+Obj/
+Logs/
+UserSettings/
+*.csproj
+*.sln
+.env
+.env.*
+*.key
+*.pem
+*.pfx

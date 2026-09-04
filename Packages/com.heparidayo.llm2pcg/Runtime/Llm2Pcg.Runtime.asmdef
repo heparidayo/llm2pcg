@@ -1,0 +1,14 @@
+{
+  "name": "Llm2Pcg.Runtime",
+  "rootNamespace": "Llm2Pcg",
+  "references": [],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

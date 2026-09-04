@@ -1,0 +1,16 @@
+{
+  "name": "com.heparidayo.llm2pcg",
+  "displayName": "LLM2PCG",
+  "version": "0.0.0-private-preview.1",
+  "unity": "6000.0",
+  "description": "Private code-only candidate for deterministic procedural world generation.",
+  "author": {
+    "name": "heparidayo"
+  },
+  "keywords": [
+    "procedural-generation",
+    "pcg",
+    "deterministic",
+    "unity"
+  ]
+}
