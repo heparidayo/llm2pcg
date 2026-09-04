@@ -1,0 +1,17 @@
+{
+  "formatVersion": 1,
+  "coordinateSystem": "right-handed-y-up",
+  "renderer": "procedural-fallback-v1",
+  "models": {},
+  "fallbacks": {
+    "Dungeon/Pillar": "procedural:pillar",
+    "Dungeon/Crate": "procedural:crate",
+    "Dungeon/Crystal": "procedural:crystal",
+    "Dungeon/Torch": "procedural:torch",
+    "Forest/Vegetation": "procedural:tree",
+    "Swamp/Vegetation": "procedural:swamp-tree",
+    "Snowfield/Vegetation": "procedural:snow-conifer",
+    "Desert/Vegetation": "procedural:cactus",
+    "City/CityPropAnchor": "procedural:city-tree"
+  }
+}

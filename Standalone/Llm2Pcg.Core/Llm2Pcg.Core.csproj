@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Llm2Pcg</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="GeneratedWorldDocument.cs" />
+    <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Contract/PCGRequest.cs" Link="Contract/PCGRequest.cs" />
+    <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Core/PcgDeterminism.cs" Link="Core/PcgDeterminism.cs" />
+    <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Core/PCGWorldContracts.cs" Link="Core/PCGWorldContracts.cs" />
+    <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Core/DungeonWorldData.cs" Link="Core/DungeonWorldData.cs" />
+    <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Core/CaveWorldData.cs" Link="Core/CaveWorldData.cs" />
+    <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Core/BiomeWorldData.cs" Link="Core/BiomeWorldData.cs" />
+    <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Generators/Dungeon/DungeonBSPGenerator.cs" Link="Generators/Dungeon/DungeonBSPGenerator.cs" />
+    <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Generators/Cave/CaveCellularGenerator.cs" Link="Generators/Cave/CaveCellularGenerator.cs" />
+    <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Generators/Forest/ForestBiomeGenerator.cs" Link="Generators/Forest/ForestBiomeGenerator.cs" />
+    <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Generators/City/CityHybridWfcGenerator.cs" Link="Generators/City/CityHybridWfcGenerator.cs" />
+    <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Generators/Nature/NatureBiomeDefinition.cs" Link="Generators/Nature/NatureBiomeDefinition.cs" />
+    <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Generators/Nature/NatureBiomeGeneratorCore.cs" Link="Generators/Nature/NatureBiomeGeneratorCore.cs" />
+    <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Generators/Nature/SwampBiomeGenerator.cs" Link="Generators/Nature/SwampBiomeGenerator.cs" />
+    <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Generators/Nature/SnowfieldBiomeGenerator.cs" Link="Generators/Nature/SnowfieldBiomeGenerator.cs" />
+    <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Generators/Nature/DesertBiomeGenerator.cs" Link="Generators/Nature/DesertBiomeGenerator.cs" />
+  </ItemGroup>
+</Project>

@@ -1,11 +1,15 @@
 {
   "name": "com.heparidayo.llm2pcg",
   "displayName": "LLM2PCG",
-  "version": "0.0.0-private-preview.1",
+  "version": "0.1.0-alpha.1",
   "unity": "6000.0",
-  "description": "Private code-only candidate for deterministic procedural world generation.",
+  "description": "Deterministic procedural world generators, Unity renderers, local bridge, and presentation components.",
   "author": {
     "name": "heparidayo"
+  },
+  "dependencies": {
+    "com.unity.inputsystem": "1.20.0",
+    "com.unity.ugui": "2.5.0"
   },
   "keywords": [
     "procedural-generation",

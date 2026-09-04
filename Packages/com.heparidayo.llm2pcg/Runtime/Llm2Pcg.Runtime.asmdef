@@ -1,7 +1,9 @@
 {
   "name": "Llm2Pcg.Runtime",
   "rootNamespace": "Llm2Pcg",
-  "references": [],
+  "references": [
+    "Unity.InputSystem"
+  ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

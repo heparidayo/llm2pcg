@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0b1117">
+    <title>LLM2PCG Web Renderer</title>
+    <script type="importmap">
+      { "imports": { "three": "/vendor/three.module.js" } }
+    </script>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand-lockup">
+        <span class="brand-mark">L2P</span>
+        <div><p class="eyebrow">STANDALONE PROCEDURAL WORLD LAB</p><h1>LLM2PCG <span>Web Renderer</span></h1></div>
+      </div>
+      <div class="topbar-actions"><a class="route-link" href="/unity/">Unity 심플 UI</a><div class="runtime-status" id="runtime-status" role="status" aria-live="polite"><span class="status-dot"></span><span id="runtime-status-label">CoreHost 확인 중</span></div></div>
+    </header>
+
+    <main class="workspace">
+      <aside class="control-panel" aria-label="월드 생성 설정">
+        <section class="panel-section intro">
+          <p class="section-kicker">GENERATE</p><h2>브라우저에서 바로 생성</h2>
+          <p>독립 C# 코어가 월드 데이터를 만들고 Three.js가 같은 창에서 렌더링합니다. Unity 실행은 필요하지 않습니다.</p>
+        </section>
+        <section class="panel-section">
+          <div class="mode-tabs" role="tablist" aria-label="입력 방식">
+            <button class="mode-tab active" type="button" role="tab" aria-selected="true" data-mode="direct">직접 설정</button>
+            <button class="mode-tab" type="button" role="tab" aria-selected="false" data-mode="natural">자연어</button>
+          </div>
+          <form id="direct-form" class="generator-form">
+            <div class="field-grid">
+              <label>월드<select id="world-type"><option>Forest</option><option>Swamp</option><option>Snowfield</option><option>Desert</option><option>City</option><option>Dungeon</option><option>Cave</option></select></label>
+              <label>Seed<input id="seed" type="number" value="234" step="1" required></label>
+              <label>가로<input id="map-width" type="number" value="128" min="16" max="500" required></label>
+              <label>세로<input id="map-height" type="number" value="128" min="16" max="500" required></label>
+            </div>
+            <label>생성 프로필<select id="generation-profile"></select></label>
+            <label>표현 방식<select id="presentation-preset"><option value="PureVoxel">1 · 순수 복셀 (프롭도 복셀)</option><option value="SurfaceOnly">2 · 자연스러운 지형 (프롭 제외)</option><option value="Complete" selected>3 · 자연스러운 지형 (프롭 에셋 추가)</option></select></label>
+            <p class="field-note">같은 seed와 world hash를 유지합니다. 1단계는 모델 에셋 없이 지형·프롭을 모두 복셀로, 3단계는 연결 표면과 프롭 에셋으로 표시합니다.</p>
+            <details class="advanced-settings">
+              <summary>고급 지형·시각 설정</summary>
+              <div class="field-grid details-grid">
+                <label>물 임계값<input id="water-threshold" type="number" min="0" max="1" step="0.01" value="0.20"></label>
+                <label>고도 크기<input id="elevation-scale" type="number" min="0.25" max="64" step="0.25" value="6"></label>
+                <label>식생 간격<input id="vegetation-distance" type="number" min="0.5" max="32" step="0.5" value="4"></label>
+                <label>식생 최대<input id="vegetation-maximum" type="number" min="0" max="10000" value="600"></label>
+                <label>나무 밀도<input id="tree-density" type="number" min="0" max="1" step="0.05" value="1"></label>
+                <label>나무 종류<input id="tree-types" type="text" placeholder="cherry_blossom"></label>
+                <label>최소 건물 높이<input id="building-min" type="number" min="1" max="128" step="0.5" value="4"></label>
+                <label>최대 건물 높이<input id="building-max" type="number" min="1" max="128" step="0.5" value="16"></label>
+              </div>
+            </details>
+            <button class="primary-action" type="submit"><span>독립 코어로 생성</span><kbd>Ctrl ↵</kbd></button>
+          </form>
+          <form id="natural-form" class="generator-form hidden">
+            <label>만들고 싶은 월드<textarea id="prompt" rows="7" required>Seed 234로 푸릇푸릇하고 나무가 풍성한 숲을 만들어줘.</textarea></label>
+            <p class="field-note">“순수 복셀로”, “자연스러운 지형으로 프롭은 빼고”, “자연스러운 지형에 프롭 에셋도 추가해서”처럼 표현 방식을 함께 요청할 수 있습니다. 별도 제외 지시가 없으면 기본 프롭을 배치합니다.</p>
+            <p class="field-note">OpenAI 키는 Web 서버에만 저장되며 브라우저에 노출되지 않습니다.</p>
+            <button class="primary-action" type="submit"><span>자연어로 생성</span><kbd>Ctrl ↵</kbd></button>
+          </form>
+        </section>
+        <section class="panel-section storage-actions">
+          <button id="save-local" type="button">브라우저에 저장</button><button id="load-local" type="button">저장본 불러오기</button><button id="download-json" type="button">결과 JSON</button>
+        </section>
+      </aside>
+
+      <section class="viewport-panel" aria-label="3D 월드 뷰">
+        <div id="world-viewport" class="world-viewport"></div>
+        <div class="viewport-placeholder" id="viewport-placeholder"><span class="placeholder-orbit"></span><p>월드를 생성하면 이곳에 독립 3D 결과가 표시됩니다.</p><small>드래그 회전 · 휠 확대 · 우클릭 이동</small></div>
+        <div class="loading-overlay hidden" id="loading-overlay" aria-live="assertive"><span class="loading-spinner"></span><strong>결정론적 월드를 생성하는 중</strong><small>Unity를 호출하지 않습니다.</small></div>
+        <div class="view-toolbar" aria-label="카메라 설정"><button type="button" data-view="isometric">사선</button><button type="button" data-view="top">탑뷰</button><button type="button" data-view="ground">지상</button></div>
+        <div class="world-badge hidden" id="world-badge"><span id="badge-world">FOREST</span><strong id="badge-hash">--------</strong></div>
+      </section>
+
+      <aside class="inspector-panel" aria-label="생성 결과 정보">
+        <section class="panel-section"><p class="section-kicker">WORLD DATA</p><h2 id="world-title">아직 생성되지 않음</h2><dl class="world-meta" id="world-meta"><div><dt>Runtime</dt><dd>Standalone</dd></div><div><dt>Renderer</dt><dd>Three.js</dd></div><div><dt>Unity</dt><dd>Not required</dd></div></dl></section>
+        <section class="panel-section renderer-handoff">
+          <div class="section-row"><p class="section-kicker">DUAL RENDERER DEMO</p><span>OPTIONAL</span></div>
+          <div class="renderer-pipeline" aria-label="Web에서 Unity로 이어지는 시연 순서"><span class="active">1 · WEB</span><i>→</i><span>2 · UNITY</span></div>
+          <button id="render-unity" class="handoff-action" type="button" disabled>같은 요청을 Unity로 전송</button>
+          <p id="unity-handoff-status" class="handoff-status" aria-live="polite">먼저 Web 월드를 생성하면 동일 요청을 Unity로 보낼 수 있습니다.</p>
+        </section>
+        <section class="panel-section"><div class="section-row"><p class="section-kicker">CELL STATISTICS</p><span id="cell-total">0 cells</span></div><div class="statistics" id="statistics"><p class="empty-copy">생성 후 셀 분포가 표시됩니다.</p></div></section>
+        <section class="panel-section result-section"><div class="section-row"><p class="section-kicker">GENERATEDWORLD V1</p><button id="copy-summary" type="button">복사</button></div><pre id="result-summary" class="result-summary">Ready.</pre></section>
+      </aside>
+    </main>
+    <footer><span>LLM2PCG · deterministic core</span><span id="footer-message">CoreHost 연결 대기</span></footer>
+    <script>
+      (() => {
+        const forms = ["direct-form", "natural-form"].map(id => document.getElementById(id));
+        const preventUnwiredSubmit = event => event.preventDefault();
+        forms.forEach(form => form.addEventListener("submit", preventUnwiredSubmit));
+        window.__llm2pcgReleaseSubmitGuard = () => forms.forEach(form => form.removeEventListener("submit", preventUnwiredSubmit));
+        window.setTimeout(() => {
+          if (document.documentElement.dataset.llm2pcgAppReady === "true") return;
+          document.getElementById("runtime-status").classList.add("error");
+          document.getElementById("runtime-status-label").textContent = "3D 모듈을 시작할 수 없음";
+          document.getElementById("viewport-placeholder").querySelector("p").textContent = "이 브라우저에서는 독립 3D 렌더러를 시작할 수 없습니다.";
+          document.getElementById("footer-message").textContent = "Chrome, Edge, Firefox 등 WebGL 지원 브라우저에서 다시 여세요.";
+          document.querySelectorAll(".primary-action, .handoff-action, [data-view]").forEach(button => button.disabled = true);
+        }, 1500);
+      })();
+    </script>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
