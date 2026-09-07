@@ -2,7 +2,7 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-LLM2PCG는 JSON 요청을 기반으로 여러 형태의 월드를 생성하는 결정론적 절차 생성(PCG) 프로젝트입니다. 같은 요청과 seed를 사용하면 동일한 월드 데이터와 해시를 재현할 수 있으며, 결과는 브라우저 또는 Unity 6에서 확인할 수 있습니다.
+LLM2PCG는 JSON 요청을 기반으로 여러 형태의 월드를 생성하는 결정론적 절차 생성(PCG) 프로젝트입니다. 같은 최종 요청과 생성기 구현을 사용하여 월드 데이터와 해시를 재현할 수 있으며, 결과는 브라우저 또는 Unity 6에서 확인할 수 있습니다.
 
 ## 아키텍처
 
@@ -27,6 +27,29 @@ LLM2PCG는 JSON 요청을 기반으로 여러 형태의 월드를 생성하는 �
 ```
 
 지원 월드: Dungeon, Cave, Forest, City, Swamp, Snowfield, Desert.
+
+## 생성 예시
+
+2026-09-06에 캡처한 실제 Unity 개발 시연입니다. 이미지의 시각 에셋·재질·시연 씬은 이 저장소에 포함하지 않으며, clone 후 실행하는 기본 데모는 간단한 도형 기반으로 표시됩니다. 아래 이미지는 다양한 생성 결과의 예시이며, 모든 자연어 조건을 완전히 충족했다는 평가 자료는 아닙니다.
+
+| 혼합림 | 벚꽃 숲 |
+| --- | --- |
+| ![Woodland](Media/Showcase/01-woodland-detail.png) | ![Cherry-blossom forest](Media/Showcase/02-cherry-detail.png) |
+| 사막 | 설원 |
+| ![Desert](Media/Showcase/03-desert-detail.png) | ![Snowfield](Media/Showcase/04-snowfield-detail.png) |
+| 습지 | 동굴 |
+| ![Swamp](Media/Showcase/05-swamp-detail.png) | ![Cave](Media/Showcase/06-cave-detail.png) |
+| 도시 | 던전 |
+| ![City](Media/Showcase/07-city-detail.png) | ![Dungeon](Media/Showcase/08-dungeon-detail.png) |
+
+시드 / 크기: 혼합림 234 / 96×96, 벚꽃 숲 234 / 64×64, 사막 311 / 96×96, 설원 412 / 96×96, 습지 513 / 64×64, 동굴 614 / 64×64, 도시 715 / 96×96, 던전 816 / 64×64. Seed만으로 동일 결과를 재현할 수는 없으며 최종 생성 요청과 같은 생성기 구현이 필요합니다.
+
+## 현재 지원 범위
+
+- 자연어 해석과 직접 JSON 입력, 7종 월드 생성, 시각 카테고리의 종류·밀도·상한 제어를 지원합니다.
+- 중앙 산·지정 위치의 강·관통 도로 같은 공간 제어는 현재 비활성입니다. layoutSettings는 neutral 호환 값만 허용합니다.
+- Core는 수치·타입 범위를 검증하고 world.diagnostics로 일부 생성 미충족 원인을 제공합니다.
+- 동일한 최종 요청과 생성기 구현을 재사용해 재현합니다. 같은 자연어를 LLM에 다시 입력하면 파라미터가 달라질 수 있습니다.
 
 ## 요구 사항
 
@@ -83,3 +106,5 @@ https://github.com/heparidayo/llm2pcg.git?path=/Packages/com.heparidayo.llm2pcg#
 - `Web`: Three.js 브라우저 렌더러와 선택적 prompt adapter
 - `Shared`: version이 명시된 JSON Schema와 JavaScript validator/default
 - `Scripts`: clone 검증과 로컬 실행 스크립트
+
+프로젝트 전체의 오픈소스 라이선스는 아직 추가하지 않았습니다. 시연 이미지의 게재가 원본 에셋의 사용·재배포 권리를 부여하지는 않습니다.

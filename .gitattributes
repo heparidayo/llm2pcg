@@ -9,3 +9,4 @@
 *.mjs text eol=lf
 *.ps1 text eol=lf
 *.unity text eol=lf
+*.png binary

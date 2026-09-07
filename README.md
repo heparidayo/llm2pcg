@@ -2,9 +2,9 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-LLM2PCG is a portfolio-ready, deterministic procedural world-generation prototype. A validated JSON request selects one of seven generators and produces reproducible world data that can be rendered in a browser or inside Unity 6.
+LLM2PCG is a deterministic procedural world-generation system driven by natural language or structured requests. A validated JSON request selects one of seven generators and produces reproducible world data that can be rendered in a browser or inside Unity 6.
 
-This repository is currently a **private release candidate**. It deliberately contains no commercial art packs, private AI source images, internal documents, presentations, screenshots, editor-agent configuration, conversation logs, or credentials.
+The Node.js middleware resolves and validates requests. A shared C# core generates world data for Unity and an independent Three.js browser renderer.
 
 ## Architecture
 
@@ -29,6 +29,29 @@ Browser UI ---> validated shared JSON contract
 ```
 
 Supported worlds: Dungeon, Cave, Forest, City, Swamp, Snowfield, and Desert.
+
+## Generation examples
+
+Actual Unity development captures from 2026-09-06. The visual assets, materials, and authored scene shown here are not included in this repository; the cloneable demo uses primitive fallbacks. These images illustrate generated environments, not complete fulfillment of every natural-language constraint.
+
+| Woodland | Cherry-blossom forest |
+| --- | --- |
+| ![Woodland](Media/Showcase/01-woodland-detail.png) | ![Cherry-blossom forest](Media/Showcase/02-cherry-detail.png) |
+| Desert | Snowfield |
+| ![Desert](Media/Showcase/03-desert-detail.png) | ![Snowfield](Media/Showcase/04-snowfield-detail.png) |
+| Swamp | Cave |
+| ![Swamp](Media/Showcase/05-swamp-detail.png) | ![Cave](Media/Showcase/06-cave-detail.png) |
+| City | Dungeon |
+| ![City](Media/Showcase/07-city-detail.png) | ![Dungeon](Media/Showcase/08-dungeon-detail.png) |
+
+Seed / size: woodland 234 / 96×96; cherry forest 234 / 64×64; desert 311 / 96×96; snowfield 412 / 96×96; swamp 513 / 64×64; cave 614 / 64×64; city 715 / 96×96; dungeon 816 / 64×64. A seed alone is insufficient for replay: retain the resolved request and matching generator implementation.
+
+## Current capabilities
+
+- Natural-language translation and direct JSON input, seven world types, and visual-category type, density, and count-cap controls.
+- Spatial overrides such as a central mountain, positioned river, or crossing road are currently disabled. layoutSettings accepts neutral compatibility values only.
+- The Core validates numeric and type constraints and reports selected incomplete-generation conditions through world.diagnostics.
+- Replay uses the same resolved request and generator implementation. Translating the same prompt again may produce different parameters.
 
 ## Requirements
 
@@ -86,4 +109,4 @@ Until then, add `Packages/com.heparidayo.llm2pcg` from the clone as a local pack
 - `Shared`: versioned JSON Schema and JavaScript validation/defaults
 - `Scripts`: clone verification and local launcher
 
-No open-source license has been selected in this private candidate yet. Choose and add the final license before changing the GitHub repository to public.
+A project-wide open-source license has not been added. The included screenshots do not grant rights to the depicted source assets.
