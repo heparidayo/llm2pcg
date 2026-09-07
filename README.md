@@ -49,6 +49,7 @@ Seed / size: woodland 234 / 96×96; cherry forest 234 / 64×64; desert 311 / 96�
 ## Current capabilities
 
 - Natural-language translation and direct JSON input, seven world types, and visual-category type, density, and count-cap controls.
+- Visual results depend on the renderer and available profile. The browser demo implements a subset of Unity's visual-placement controls; identical world data does not imply identical prop layouts or appearance.
 - Spatial overrides such as a central mountain, positioned river, or crossing road are currently disabled. layoutSettings accepts neutral compatibility values only.
 - The Core validates numeric and type constraints and reports selected incomplete-generation conditions through world.diagnostics.
 - Replay uses the same resolved request and generator implementation. Translating the same prompt again may produce different parameters.
