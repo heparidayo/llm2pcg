@@ -55,6 +55,17 @@ namespace Llm2Pcg.Rendering
         private readonly InstancedRenderBatchBuilder visualBatches = new InstancedRenderBatchBuilder();
         private readonly List<ResolvedVisualPlacement> visualPlacements = new List<ResolvedVisualPlacement>();
         private int fallbackPropInstanceCount;
+        private readonly DungeonTorchLightPool torchLights = new DungeonTorchLightPool();
+        public int ActiveTorchLightCount => torchLights.ActiveCount;
+        private int[] currentVisualLods = Array.Empty<int>();
+        private readonly int[] lodPlacementCounts = new int[8];
+        private Vector3 lastLodCameraPosition;
+        private float lastLodFieldOfView, lastLodOrthographicSize;
+        private bool lastLodOrthographic, hasLodCameraState;
+        public int LodRebuildCount { get; private set; }
+        public int GetLodPlacementCount(int lod) => lod >= 0 && lod < lodPlacementCounts.Length ? lodPlacementCounts[lod] : 0;
+        public long EstimatedVisualVertexCount => visualBatches.EstimatedVertexCount;
+        public int VisualPlacementCount => visualPlacements.Count;
 
         public int FloorInstanceCount { get; private set; }
         public int CorridorInstanceCount { get; private set; }
@@ -109,6 +120,7 @@ namespace Llm2Pcg.Rendering
 
         private void OnDestroy()
         {
+            torchLights.Dispose();
             visualBatches.Dispose();
             DestroyDungeonSurface();
             DestroyFallbackMaterial(floorMaterial);
@@ -128,8 +140,13 @@ namespace Llm2Pcg.Rendering
             DestroyFallbackMaterial(torchMaterial);
         }
 
+        private void OnDisable() => torchLights.Clear();
+        private void OnEnable() => torchLights.SetPlacements(visualPlacements);
+
         private void Update()
         {
+            RefreshVisualLod(Camera.main);
+            torchLights.Update(Camera.main, transform);
             RenderDungeonSurface();
             RenderBatches(floorBatches, floorMaterial);
             RenderBatches(corridorBatches, corridorMaterial);
@@ -181,7 +198,7 @@ namespace Llm2Pcg.Rendering
             BiomeVisualProfile profile = VisualProfileLoader.Load(Contract.PCGRequest.DungeonWorldType);
             visualBatches.Clear();
             visualPlacements.Clear();
-            List<ResolvedVisualPlacement> architecture = showProps
+            List<ResolvedVisualPlacement> architecture = showProps && !voxelGeometry
                 ? DungeonArchitectureLayoutBuilder.Build(dungeon, profile, tileSize, wallHeight)
                 : new List<ResolvedVisualPlacement>();
             for (int index = 0; index < architecture.Count; index++)
@@ -248,7 +265,9 @@ namespace Llm2Pcg.Rendering
                 else if (prop.Type == DungeonPropType.Crystal) crystals.Add(new InstanceData { objectToWorld = fallbackMatrix });
                 else torches.Add(new InstanceData { objectToWorld = fallbackMatrix });
             }
-            visualBatches.Build();
+            if (showProps && !voxelGeometry) visualPlacements.AddRange(DungeonCitadelDetails.Build(dungeon, profile, tileSize));
+            torchLights.SetPlacements(visualPlacements);
+            RefreshVisualLod(Camera.main, true);
             VisualLayoutHash = showProps ? VisualLayoutHasher.Compute(profile, visualPlacements) : "00000000";
 
             ReplaceBatches(floorBatches, floors);
@@ -315,6 +334,11 @@ namespace Llm2Pcg.Rendering
             CrystalPropCount = 0;
             TorchPropCount = 0;
             fallbackPropInstanceCount = 0;
+            torchLights.Clear();
+            currentVisualLods = Array.Empty<int>();
+            Array.Clear(lodPlacementCounts, 0, lodPlacementCounts.Length);
+            hasLodCameraState = false;
+            LodRebuildCount = 0;
             DungeonArchitectureInstanceCount = 0;
             VoxelGeometryInstanceCount = 0;
             PresentationGeometryMode = PresentationGeometryModes.Surface;
@@ -328,6 +352,45 @@ namespace Llm2Pcg.Rendering
             DungeonSurfaceUsesAssetMaterials = false;
             DungeonSurfaceHash = "00000000";
             VisualLayoutHash = "00000000";
+        }
+
+        public bool RefreshVisualLod(Camera camera, bool force = false)
+        {
+            if (!force && camera != null && hasLodCameraState &&
+                (camera.transform.position - lastLodCameraPosition).sqrMagnitude < .25f &&
+                camera.orthographic == lastLodOrthographic &&
+                Mathf.Approximately(camera.fieldOfView, lastLodFieldOfView) &&
+                Mathf.Approximately(camera.orthographicSize, lastLodOrthographicSize)) return false;
+
+            if (camera != null)
+            {
+                lastLodCameraPosition = camera.transform.position;
+                lastLodFieldOfView = camera.fieldOfView;
+                lastLodOrthographicSize = camera.orthographicSize;
+                lastLodOrthographic = camera.orthographic;
+                hasLodCameraState = true;
+            }
+
+            bool changed = force || currentVisualLods.Length != visualPlacements.Count;
+            if (currentVisualLods.Length != visualPlacements.Count) currentVisualLods = new int[visualPlacements.Count];
+            for (int index = 0; index < visualPlacements.Count; index++)
+            {
+                int selected = camera == null ? 0 : VisualLodSelector.SelectLodIndex(visualPlacements[index], camera);
+                if (currentVisualLods[index] != selected) { currentVisualLods[index] = selected; changed = true; }
+            }
+            if (!changed) return false;
+
+            visualBatches.Clear();
+            Array.Clear(lodPlacementCounts, 0, lodPlacementCounts.Length);
+            for (int index = 0; index < visualPlacements.Count; index++)
+            {
+                int lod = currentVisualLods[index];
+                visualBatches.Add(visualPlacements[index], lod);
+                if (lod >= 0 && lod < lodPlacementCounts.Length) lodPlacementCounts[lod]++;
+            }
+            visualBatches.Build();
+            LodRebuildCount++;
+            return true;
         }
 
         private InstanceData CreateTileInstance(int x, int y, float height)
@@ -346,8 +409,9 @@ namespace Llm2Pcg.Rendering
 
         private InstanceData CreateMarkerInstance(Int2 point)
         {
-            Vector3 position = new Vector3(point.X * tileSize, 1.5f, point.Y * tileSize);
-            Vector3 scale = new Vector3(tileSize * 1.35f, 3f, tileSize * 1.35f);
+            // Preserve semantic colors without blocking the first-person view.
+            Vector3 position = new Vector3(point.X * tileSize, .025f, point.Y * tileSize);
+            Vector3 scale = new Vector3(tileSize * .8f, .03f, tileSize * .8f);
             return new InstanceData { objectToWorld = Matrix4x4.TRS(position, Quaternion.identity, scale) };
         }
 
@@ -457,11 +521,11 @@ namespace Llm2Pcg.Rendering
 
         private void LoadSurfaceMaterials()
         {
-            floorMaterial = floorMaterial == null ? Resources.Load<Material>("PCGSurfaceMaterials/DungeonRoomFloor") : floorMaterial;
-            corridorMaterial = corridorMaterial == null ? Resources.Load<Material>("PCGSurfaceMaterials/DungeonCorridorFloor") : corridorMaterial;
-            wallMaterial = wallMaterial == null ? Resources.Load<Material>("PCGSurfaceMaterials/DungeonWall") : wallMaterial;
-            trimMaterial = trimMaterial == null ? Resources.Load<Material>("PCGSurfaceMaterials/DungeonTrim") : trimMaterial;
-            doorwayMaterial = doorwayMaterial == null ? Resources.Load<Material>("PCGSurfaceMaterials/DungeonDoorway") : doorwayMaterial;
+            floorMaterial = floorMaterial == null ? (Resources.Load<Material>("PCGSurfaceMaterials/DungeonCitadel/RoomFloor") ?? Resources.Load<Material>("PCGSurfaceMaterials/DungeonRoomFloor")) : floorMaterial;
+            corridorMaterial = corridorMaterial == null ? (Resources.Load<Material>("PCGSurfaceMaterials/DungeonCitadel/CorridorFloor") ?? Resources.Load<Material>("PCGSurfaceMaterials/DungeonCorridorFloor")) : corridorMaterial;
+            wallMaterial = wallMaterial == null ? (Resources.Load<Material>("PCGSurfaceMaterials/DungeonCitadel/Wall") ?? Resources.Load<Material>("PCGSurfaceMaterials/DungeonWall")) : wallMaterial;
+            trimMaterial = trimMaterial == null ? (Resources.Load<Material>("PCGSurfaceMaterials/DungeonCitadel/Trim") ?? Resources.Load<Material>("PCGSurfaceMaterials/DungeonTrim")) : trimMaterial;
+            doorwayMaterial = doorwayMaterial == null ? (Resources.Load<Material>("PCGSurfaceMaterials/DungeonCitadel/Doorway") ?? Resources.Load<Material>("PCGSurfaceMaterials/DungeonDoorway")) : doorwayMaterial;
             DungeonSurfaceUsesAssetMaterials = floorMaterial != null && corridorMaterial != null && wallMaterial != null && trimMaterial != null && doorwayMaterial != null;
         }
 

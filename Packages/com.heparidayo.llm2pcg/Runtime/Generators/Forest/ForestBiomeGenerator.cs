@@ -37,7 +37,7 @@ namespace Llm2Pcg.Generators.Forest
                 elevations[index] = QuantizeHeight(Math.Max(0f, terrain - waterThreshold) * settings.elevationScale);
             }
 
-            List<Int2> clearings = PoissonPoints(PcgSeed.Stage(request.seed, 220), width, height, Math.Max(6, (int)settings.clearingRadius), tiles, 7, true);
+            List<Int2> clearings = PoissonPoints(PcgSeed.Stage(request.seed, 220), width, height, Math.Max(6, (int)settings.clearingRadius), tiles, 7);
             EnsureTwoClearings(clearings, tiles, width, height);
             int clearingRadius = Math.Max(2, (int)(settings.clearingRadius * .28f));
             for (int i = 0; i < clearings.Count; i++) PaintDisk(tiles, width, height, clearings[i], clearingRadius, BiomeTile.Ground);
@@ -49,14 +49,14 @@ namespace Llm2Pcg.Generators.Forest
                 for (int p = 0; p < path.Count; p++) PaintDisk(tiles, width, height, path[p], 1, BiomeTile.Path);
             }
 
-            List<Int2> vegetation = PoissonPoints(PcgSeed.Stage(request.seed, 240), width, height, Math.Max(2, (int)vegetationDistance), tiles, settings.vegetationMaxCount, false);
+            List<Int2> vegetation = PoissonPoints(PcgSeed.Stage(request.seed, 240), width, height, Math.Max(2, (int)vegetationDistance), tiles, settings.vegetationMaxCount);
             return new BiomeWorldData(WorldType, GeneratorVersion, width, height, request.seed, tiles, clearings[0], clearings[clearings.Count - 1], vegetation, elevations);
         }
 
         private static float FractalValueNoise(int seed, int x, int y, int octaves, float frequency)
         {
             float sum = 0f, amplitude = 1f, total = 0f;
-            int scale = Math.Max(3, (int)Math.Round(1f / Math.Max(.001f, frequency)));
+            int scale = PcgSeed.NoiseScale(frequency);
             for (int octave = 0; octave < octaves; octave++)
             {
                 sum += ValueNoise(seed + octave * 7919, x, y, Math.Max(3, scale)) * amplitude;
@@ -81,21 +81,20 @@ namespace Llm2Pcg.Generators.Forest
         private static float Lerp(float a, float b, float t) => a + (b - a) * t;
         private static float QuantizeHeight(float value) => (float)Math.Round(value * 4f, MidpointRounding.AwayFromZero) * .25f;
 
-        private static List<Int2> PoissonPoints(int seed, int width, int height, int minimumDistance, BiomeTile[] tiles, int maximum, bool allowGroundOnly)
+        private static List<Int2> PoissonPoints(int seed, int width, int height, int minimumDistance, BiomeTile[] tiles, int maximum)
         {
             PcgDeterministicRandom random = new PcgDeterministicRandom(seed);
             List<Int2> result = new List<Int2>();
             int attempts = Math.Max(64, width * height * 2);
-            int minSquared = minimumDistance * minimumDistance;
+            PcgPointSpacingIndex spacing = new PcgPointSpacingIndex(width, height, minimumDistance);
             for (int attempt = 0; attempt < attempts && result.Count < maximum; attempt++)
             {
                 int x = 2 + random.NextInt(Math.Max(1, width - 4));
                 int y = 2 + random.NextInt(Math.Max(1, height - 4));
                 BiomeTile tile = tiles[y * width + x];
-                if (allowGroundOnly ? tile != BiomeTile.Ground : tile != BiomeTile.Ground) continue;
-                bool accepted = true;
-                for (int i = 0; i < result.Count; i++) { int dx = x - result[i].X, dy = y - result[i].Y; if (dx * dx + dy * dy < minSquared) { accepted = false; break; } }
-                if (accepted) result.Add(new Int2(x, y));
+                if (tile != BiomeTile.Ground || !spacing.CanPlace(x, y)) continue;
+                result.Add(new Int2(x, y));
+                spacing.Add(x, y);
             }
             result.Sort((a, b) => (a.Y * width + a.X).CompareTo(b.Y * width + b.X));
             return result;

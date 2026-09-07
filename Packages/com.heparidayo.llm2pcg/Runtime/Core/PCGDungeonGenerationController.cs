@@ -67,6 +67,8 @@ namespace Llm2Pcg.Core
                 throw new ArgumentException(validation.Code + ": " + validation.Message, nameof(request));
             LastRequest = request;
             LastGeneratedData = registry.GetRequired(request).Generate(request);
+            foreach (PCGGenerationDiagnostic diagnostic in PCGGenerationDiagnostics.Inspect(request, LastGeneratedData))
+                Debug.LogWarning(diagnostic.code + ": " + diagnostic.message, this);
             LastGeneratedWorld = LastGeneratedData as DungeonWorldData;
             dungeonRenderer.Clear();
             if (caveRenderer != null) caveRenderer.Clear();

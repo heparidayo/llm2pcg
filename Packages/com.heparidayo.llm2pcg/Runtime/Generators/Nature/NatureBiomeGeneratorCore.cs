@@ -170,7 +170,7 @@ namespace Llm2Pcg.Generators.Nature
         private static float FractalValueNoise(int seed, int x, int y, int octaves, float frequency)
         {
             float sum = 0f, amplitude = 1f, total = 0f;
-            int scale = Math.Max(3, (int)Math.Round(1f / Math.Max(.001f, frequency)));
+            int scale = PcgSeed.NoiseScale(frequency);
             for (int octave = 0; octave < octaves; octave++)
             {
                 sum += ValueNoise(seed + octave * 7919, x, y, scale) * amplitude;
@@ -206,13 +206,14 @@ namespace Llm2Pcg.Generators.Nature
             int spanX = Math.Max(1, width - marginX * 2);
             int spanY = Math.Max(1, height - marginY * 2);
             int attempts = Math.Max(64, width * height * 2);
-            int minSquared = minimumDistance * minimumDistance;
+            PcgPointSpacingIndex spacing = new PcgPointSpacingIndex(width, height, minimumDistance);
             for (int attempt = 0; attempt < attempts && result.Count < maximum; attempt++)
             {
                 int x = marginX + random.NextInt(spanX), y = marginY + random.NextInt(spanY);
                 if (tiles[y * width + x] != BiomeTile.Ground) continue;
-                if (TooClose(x, y, result, minSquared) || exclusions != null && TooClose(x, y, exclusions, 16)) continue;
+                if (!spacing.CanPlace(x, y) || exclusions != null && TooClose(x, y, exclusions, 16)) continue;
                 result.Add(new Int2(x, y));
+                spacing.Add(x, y);
             }
             result.Sort((a, b) => (a.Y * width + a.X).CompareTo(b.Y * width + b.X));
             return result;

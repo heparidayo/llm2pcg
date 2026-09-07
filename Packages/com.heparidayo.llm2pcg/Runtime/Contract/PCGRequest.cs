@@ -174,6 +174,7 @@ namespace Llm2Pcg.Contract
         public static PCGValidationResult UpgradeInPlace(PCGRequest request)
         {
             if (request == null) return PCGValidationResult.Invalid("INVALID_REQUEST", "Request body is missing or malformed.");
+            int sourceSchemaVersion = request.schemaVersion;
             if (request.schemaVersion == 1)
             {
                 if (!string.Equals(request.worldType, PCGRequest.DungeonWorldType, StringComparison.Ordinal)) return PCGValidationResult.Invalid("UNSUPPORTED_SCHEMA_VERSION", "Only legacy Dungeon requests can be upgraded.");
@@ -198,7 +199,8 @@ namespace Llm2Pcg.Contract
                 if (Empty(request.generatorSettings.forest)) request.generatorSettings.forest = null;
                 if (Empty(request.generatorSettings.cave)) request.generatorSettings.cave = null;
                 if (Empty(request.generatorSettings.dungeon)) request.generatorSettings.dungeon = null;
-                NormalizeActiveSettings(request);
+                // Defaults for missing elevation fields belong to legacy payloads only.
+                if (sourceSchemaVersion < PCGRequest.CurrentSchemaVersion) NormalizeActiveSettings(request);
             }
             NormalizeVisualSettings(request);
             NormalizePresentationSettings(request);
@@ -261,7 +263,7 @@ namespace Llm2Pcg.Contract
             PCGValidationResult upgrade = PCGRequestUpgrader.UpgradeInPlace(request);
             if (!upgrade.IsValid) return upgrade;
             if (request.schemaVersion != PCGRequest.CurrentSchemaVersion) return PCGValidationResult.Invalid("UNSUPPORTED_SCHEMA_VERSION", "Only schemaVersion 3 is supported after upgrade.");
-            if (request.mapWidth <= 0 || request.mapHeight <= 0) return PCGValidationResult.Invalid("INVALID_MAP_SIZE", "mapWidth and mapHeight must both be greater than zero.");
+            if (request.mapWidth < 16 || request.mapHeight < 16 || request.mapWidth > 500 || request.mapHeight > 500) return PCGValidationResult.Invalid("INVALID_MAP_SIZE", "mapWidth and mapHeight must both be in 16..500.");
             if (!IsWorldType(request.worldType)) return PCGValidationResult.Invalid("UNSUPPORTED_WORLD_TYPE", "worldType must be Dungeon, City, Forest, Cave, Swamp, Snowfield, or Desert.");
             if (request.generatorSettings == null) return PCGValidationResult.Invalid("MISSING_GENERATOR_SETTINGS", "generatorSettings is required.");
             if (!ValidateProps(request.propSettings, out PCGValidationResult props)) return props;
@@ -283,8 +285,8 @@ namespace Llm2Pcg.Contract
             if (!string.Equals(r.generatorVersion, PCGRequest.DungeonGeneratorVersion, StringComparison.Ordinal)) return PCGValidationResult.Invalid("UNSUPPORTED_GENERATOR_VERSION", "Dungeon requires dungeon-bsp@1.");
             if (!string.Equals(r.biome, PCGRequest.StoneBiome, StringComparison.Ordinal) || !IsOneOf(r.generationProfile, PCGRequest.DefaultDungeonProfile, PCGRequest.CompactDungeonProfile, PCGRequest.SprawlingDungeonProfile)) return PCGValidationResult.Invalid("UNSUPPORTED_GENERATION_PROFILE", "Invalid Dungeon biome or profile.");
             if (r.generatorSettings.dungeon == null || r.generatorSettings.city != null || r.generatorSettings.forest != null || r.generatorSettings.cave != null) return PCGValidationResult.Invalid("INVALID_GENERATOR_SETTINGS", "Dungeon requires exactly generatorSettings.dungeon.");
-            if (r.generatorSettings.dungeon.maxDepth < 1) return PCGValidationResult.Invalid("INVALID_MAX_DEPTH", "generatorSettings.dungeon.maxDepth must be at least 1.");
-            if (r.generatorSettings.dungeon.minLeafSize <= 0 || r.generatorSettings.dungeon.minLeafSize >= r.mapWidth || r.generatorSettings.dungeon.minLeafSize >= r.mapHeight) return PCGValidationResult.Invalid("INVALID_MIN_LEAF_SIZE", "minLeafSize must be greater than zero and smaller than both map dimensions.");
+            if (r.generatorSettings.dungeon.maxDepth < 1 || r.generatorSettings.dungeon.maxDepth > 12) return PCGValidationResult.Invalid("INVALID_MAX_DEPTH", "generatorSettings.dungeon.maxDepth must be in 1..12.");
+            if (r.generatorSettings.dungeon.minLeafSize < 3 || r.generatorSettings.dungeon.minLeafSize > 200 || r.generatorSettings.dungeon.minLeafSize >= r.mapWidth || r.generatorSettings.dungeon.minLeafSize >= r.mapHeight) return PCGValidationResult.Invalid("INVALID_MIN_LEAF_SIZE", "minLeafSize must be in 3..200 and smaller than both map dimensions.");
             if (r.specialRooms == null || !ValidRoom(r.specialRooms.boss) || !ValidRoom(r.specialRooms.treasure) || !ValidRoom(r.specialRooms.shop) || !ValidRoom(r.specialRooms.secret)) return PCGValidationResult.Invalid("MISSING_SPECIAL_ROOMS", "Dungeon special room settings are required.");
             return PCGValidationResult.Valid();
         }
@@ -295,20 +297,20 @@ namespace Llm2Pcg.Contract
             // world request; it must not silently become a malformed Cave request.
             if (string.Equals(r.generatorVersion, PCGRequest.DungeonGeneratorVersion, StringComparison.Ordinal)) return PCGValidationResult.Invalid("UNSUPPORTED_WORLD_TYPE", "Dungeon settings cannot be used to request Cave.");
             if (!string.Equals(r.generatorVersion, PCGRequest.CaveGeneratorVersion, StringComparison.Ordinal) || !string.Equals(r.biome, PCGRequest.StoneBiome, StringComparison.Ordinal) || !IsOneOf(r.generationProfile, PCGRequest.DefaultCaveProfile, PCGRequest.CavernousCaveProfile, PCGRequest.TightCaveProfile) || s == null || r.generatorSettings.dungeon != null || r.generatorSettings.city != null || r.generatorSettings.forest != null) return PCGValidationResult.Invalid("INVALID_GENERATOR_SETTINGS", "Cave requires exactly generatorSettings.cave and a Cave profile.");
-            if (!(s.fillPercent >= 20 && s.fillPercent <= 80 && s.automataSteps >= 1 && s.minimumRegionSize >= 1 && s.tunnelRadius >= 1 && s.extraTunnelCount >= 0)) return PCGValidationResult.Invalid("INVALID_CAVE_SETTINGS", "Cave settings are out of range.");
+            if (!(s.fillPercent >= 20 && s.fillPercent <= 80 && s.automataSteps >= 1 && s.automataSteps <= 12 && s.minimumRegionSize >= 1 && s.minimumRegionSize <= 1000 && s.tunnelRadius >= 1 && s.tunnelRadius <= 5 && s.extraTunnelCount >= 0 && s.extraTunnelCount <= 16)) return PCGValidationResult.Invalid("INVALID_CAVE_SETTINGS", "Cave settings are out of range.");
             return PCGValidationResult.Valid();
         }
         private static PCGValidationResult ValidateForest(PCGRequest r)
         {
             ForestGeneratorSettings s = r.generatorSettings.forest;
             if (!string.Equals(r.generatorVersion, PCGRequest.ForestGeneratorVersion, StringComparison.Ordinal) || !string.Equals(r.biome, PCGRequest.TemperateBiome, StringComparison.Ordinal) || !IsOneOf(r.generationProfile, PCGRequest.DefaultForestProfile, PCGRequest.DenseForestProfile, PCGRequest.MeadowForestProfile) || s == null || r.generatorSettings.dungeon != null || r.generatorSettings.city != null || r.generatorSettings.cave != null) return PCGValidationResult.Invalid("INVALID_GENERATOR_SETTINGS", "Forest requires exactly generatorSettings.forest and a Forest profile.");
-            return s.noiseOctaves >= 1 && s.clearingRadius > 0f && s.vegetationMinDistance > 0f && s.vegetationMaxCount >= 0 && s.elevationScale > 0f && s.elevationScale <= 64f && s.elevationFrequency > 0f && s.elevationFrequency <= 1f ? PCGValidationResult.Valid() : PCGValidationResult.Invalid("INVALID_FOREST_SETTINGS", "Forest settings are out of range.");
+            return ValidForestNumbers(s) ? PCGValidationResult.Valid() : PCGValidationResult.Invalid("INVALID_FOREST_SETTINGS", "Forest settings are out of range.");
         }
         private static PCGValidationResult ValidateCity(PCGRequest r)
         {
             CityGeneratorSettings s = r.generatorSettings.city;
             if (!string.Equals(r.generatorVersion, PCGRequest.CityGeneratorVersion, StringComparison.Ordinal) || !string.Equals(r.biome, PCGRequest.TemperateBiome, StringComparison.Ordinal) || !IsOneOf(r.generationProfile, PCGRequest.DefaultCityProfile, PCGRequest.GridCityProfile, PCGRequest.OrganicCityProfile) || s == null || r.generatorSettings.dungeon != null || r.generatorSettings.forest != null || r.generatorSettings.cave != null) return PCGValidationResult.Invalid("INVALID_GENERATOR_SETTINGS", "City requires exactly generatorSettings.city and a City profile.");
-            if (!(s.hubMinDistance > 0f && s.hubMaxCount >= 2 && s.roadWidth >= 1 && s.extraLoopCount >= 0 && s.wfcBacktrackLimit >= 0 && s.wfcRestartLimit >= 0 && s.buildingMinHeight >= 1f && s.buildingMaxHeight >= s.buildingMinHeight && s.buildingMaxHeight <= 128f)) return PCGValidationResult.Invalid("INVALID_CITY_SETTINGS", "City settings are out of range.");
+            if (!(s.hubMinDistance > 0f && s.hubMinDistance <= 128f && s.hubMaxCount >= 2 && s.hubMaxCount <= 64 && s.roadWidth >= 1 && s.roadWidth <= 8 && s.extraLoopCount >= 0 && s.extraLoopCount <= 32 && s.wfcBacktrackLimit >= 0 && s.wfcBacktrackLimit <= 10000 && s.wfcRestartLimit >= 0 && s.wfcRestartLimit <= 32 && s.buildingMinHeight >= 1f && s.buildingMaxHeight >= s.buildingMinHeight && s.buildingMaxHeight <= 128f)) return PCGValidationResult.Invalid("INVALID_CITY_SETTINGS", "City settings are out of range.");
             return PCGValidationResult.Valid();
         }
         private static PCGValidationResult ValidateNature(PCGRequest r, string generatorVersion, string biome, string defaultProfile, string profileA, string profileB)
@@ -316,14 +318,21 @@ namespace Llm2Pcg.Contract
             ForestGeneratorSettings s = r.generatorSettings.forest;
             if (!string.Equals(r.generatorVersion, generatorVersion, StringComparison.Ordinal) || !string.Equals(r.biome, biome, StringComparison.Ordinal) || !IsOneOf(r.generationProfile, defaultProfile, profileA, profileB) || s == null || r.generatorSettings.dungeon != null || r.generatorSettings.city != null || r.generatorSettings.cave != null)
                 return PCGValidationResult.Invalid("INVALID_GENERATOR_SETTINGS", r.worldType + " requires exactly generatorSettings.forest and a matching Nature profile.");
-            return s.waterThreshold >= 0f && s.waterThreshold <= 1f && s.noiseOctaves >= 1 && s.noiseOctaves <= 8 && s.clearingRadius > 0f && s.vegetationMinDistance > 0f && s.vegetationMaxCount >= 0 && s.elevationScale > 0f && s.elevationScale <= 64f && s.elevationFrequency > 0f && s.elevationFrequency <= 1f
+            return ValidForestNumbers(s)
                 ? PCGValidationResult.Valid()
                 : PCGValidationResult.Invalid("INVALID_NATURE_SETTINGS", r.worldType + " settings are out of range.");
         }
-        private static bool ValidateProps(PropSettings s, out PCGValidationResult result) { result = s != null && s.density >= 0f && s.density <= 1f && s.maxCount >= 0 && s.allowedTypes != null ? PCGValidationResult.Valid() : PCGValidationResult.Invalid("INVALID_PROP_SETTINGS", "propSettings is invalid."); return result.IsValid; }
+        private static bool ValidForestNumbers(ForestGeneratorSettings s) => s.waterThreshold >= 0f && s.waterThreshold <= 1f && s.noiseOctaves >= 1 && s.noiseOctaves <= 8 && s.clearingRadius > 0f && s.clearingRadius <= 64f && s.vegetationMinDistance > 0f && s.vegetationMinDistance <= 32f && s.vegetationMaxCount >= 0 && s.vegetationMaxCount <= 10000 && s.elevationScale > 0f && s.elevationScale <= 64f && s.elevationFrequency > 0f && s.elevationFrequency <= 1f;
+        private static bool ValidateProps(PropSettings s, out PCGValidationResult result)
+        {
+            bool valid = s != null && s.density >= 0f && s.density <= 1f && s.maxCount >= 0 && s.allowedTypes != null;
+            if (valid) for (int i = 0; i < s.allowedTypes.Length; i++) if (!OneOf(s.allowedTypes[i], "Pillar", "Crate", "Crystal", "Torch")) valid = false;
+            result = valid ? PCGValidationResult.Valid() : PCGValidationResult.Invalid("INVALID_PROP_SETTINGS", "propSettings is invalid.");
+            return valid;
+        }
         private static bool ValidateVisuals(VisualSettings s, out PCGValidationResult result)
         {
-            result = s != null && ValidVisualCategory(s.trees) && ValidVisualCategory(s.rocks) && ValidVisualCategory(s.bushes) && ValidVisualCategory(s.groundDetails) && ValidVisualCategory(s.waterProps)
+            result = s != null && ValidVisualCategory(s.trees, "cherry_blossom", "broadleaf", "conifer", "willow", "dead_tree", "palm", "cactus") && ValidVisualCategory(s.rocks, "rock", "ice") && ValidVisualCategory(s.bushes, "bush", "reeds") && ValidVisualCategory(s.groundDetails, "grass", "flower", "plant", "mushroom", "stump", "log", "branch", "thorn") && ValidVisualCategory(s.waterProps, "lily_pad", "water_lily", "reeds", "palm", "ice")
                 ? PCGValidationResult.Valid()
                 : PCGValidationResult.Invalid("INVALID_VISUAL_SETTINGS", "visualSettings density must be 0..1, maxCount must be non-negative, and allowedTypes must use supported canonical names.");
             return result.IsValid;
@@ -345,17 +354,11 @@ namespace Llm2Pcg.Contract
             return valid;
         }
         private static bool OneOf(string value, params string[] choices) { for (int index = 0; index < choices.Length; index++) if (string.Equals(value, choices[index], StringComparison.Ordinal)) return true; return false; }
-        private static bool ValidVisualCategory(VisualCategorySettings s)
+        private static bool ValidVisualCategory(VisualCategorySettings s, params string[] supported)
         {
-            if (s == null || s.density < 0f || s.density > 1f || s.maxCount < 0 || s.allowedTypes == null) return false;
-            for (int index = 0; index < s.allowedTypes.Length; index++) if (!KnownVisualType(s.allowedTypes[index])) return false;
+            if (s == null || !(s.density >= 0f && s.density <= 1f) || s.maxCount < 0 || s.allowedTypes == null) return false;
+            for (int index = 0; index < s.allowedTypes.Length; index++) if (!OneOf(s.allowedTypes[index], supported)) return false;
             return true;
-        }
-        private static bool KnownVisualType(string value)
-        {
-            string[] supported = { "cherry_blossom", "broadleaf", "conifer", "willow", "dead_tree", "palm", "cactus", "rock", "bush", "reeds", "grass", "flower", "plant", "mushroom", "stump", "log", "branch", "thorn", "lily_pad", "water_lily", "ice" };
-            for (int index = 0; index < supported.Length; index++) if (string.Equals(value, supported[index], StringComparison.Ordinal)) return true;
-            return false;
         }
         private static bool ValidRoom(BossRoomSettings s) => s != null && s.count >= 0 && !string.IsNullOrWhiteSpace(s.placement);
         private static bool ValidRoom(RoomSelectionSettings s) => s != null && s.count >= 0 && !string.IsNullOrWhiteSpace(s.placement);

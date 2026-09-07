@@ -25,11 +25,19 @@ namespace Llm2Pcg.Rendering
         private readonly List<Matrix4x4[]> voxelRockBatches = new List<Matrix4x4[]>();
         private Mesh cubeMesh;
         private Mesh caveSurfaceMesh;
+        private int[] currentVisualLods = Array.Empty<int>();
+        private readonly int[] lodPlacementCounts = new int[8];
+        private Vector3 lastLodCameraPosition;
+        private float lastLodFieldOfView, lastLodOrthographicSize;
+        private bool lastLodOrthographic, hasLodCameraState;
+        public int LodRebuildCount { get; private set; }
+        public int GetLodPlacementCount(int lod) => lod >= 0 && lod < lodPlacementCounts.Length ? lodPlacementCounts[lod] : 0;
 
         public string WorldType => PCGRequest.CaveWorldType;
         public int TotalInstanceCount { get; private set; }
         public int RenderSubmissionCount => CaveSurfaceSubmissionCount + voxelFloorBatches.Count + voxelRockBatches.Count + visualBatches.SubmissionCount;
         public int VisualInstanceCount => visualBatches.InstanceCount;
+        public long EstimatedVisualVertexCount => visualBatches.EstimatedVertexCount;
         public int MaximumVisualSubmissionSize => visualBatches.MaximumSubmissionSize;
         public int CaveSurfaceVertexCount { get; private set; }
         public int CaveSurfaceTriangleCount { get; private set; }
@@ -48,9 +56,9 @@ namespace Llm2Pcg.Rendering
             Material fallbackFloor = CreateFallback(new Color(.24f, .25f, .24f));
             Material fallbackRock = CreateFallback(new Color(.20f, .22f, .24f));
             Material fallbackWall = CreateFallback(new Color(.16f, .18f, .20f));
-            surfaceMaterials[CaveSurfaceMeshBuilder.FloorSubmesh] = floorMaterial != null ? floorMaterial : Resources.Load<Material>("PCGSurfaceMaterials/CaveFloor") ?? fallbackFloor;
-            surfaceMaterials[CaveSurfaceMeshBuilder.RockSubmesh] = rockMaterial != null ? rockMaterial : Resources.Load<Material>("PCGSurfaceMaterials/CaveRock") ?? fallbackRock;
-            surfaceMaterials[CaveSurfaceMeshBuilder.WallSubmesh] = wallMaterial != null ? wallMaterial : Resources.Load<Material>("PCGSurfaceMaterials/CaveWall") ?? fallbackWall;
+            surfaceMaterials[CaveSurfaceMeshBuilder.FloorSubmesh] = floorMaterial != null ? floorMaterial : Resources.Load<Material>("PCGSurfaceMaterials/CrystalGrotto/CaveFloor") ?? Resources.Load<Material>("PCGSurfaceMaterials/CaveFloor") ?? fallbackFloor;
+            surfaceMaterials[CaveSurfaceMeshBuilder.RockSubmesh] = rockMaterial != null ? rockMaterial : Resources.Load<Material>("PCGSurfaceMaterials/CrystalGrotto/CaveRock") ?? Resources.Load<Material>("PCGSurfaceMaterials/CaveRock") ?? fallbackRock;
+            surfaceMaterials[CaveSurfaceMeshBuilder.WallSubmesh] = wallMaterial != null ? wallMaterial : Resources.Load<Material>("PCGSurfaceMaterials/CrystalGrotto/CaveWall") ?? Resources.Load<Material>("PCGSurfaceMaterials/CaveWall") ?? fallbackWall;
             CaveSurfaceUsesAssetMaterials = surfaceMaterials[0] != fallbackFloor && surfaceMaterials[1] != fallbackRock && surfaceMaterials[2] != fallbackWall;
         }
 
@@ -93,8 +101,7 @@ namespace Llm2Pcg.Rendering
 
             BiomeVisualProfile profile = VisualProfileLoader.Load(PCGRequest.CaveWorldType);
             if (showProps) visualPlacements.AddRange(VisualWorldLayoutBuilder.BuildCaveDetails(world, profile, tileSize));
-            for (int index = 0; index < visualPlacements.Count; index++) visualBatches.Add(visualPlacements[index]);
-            visualBatches.Build();
+            RefreshVisualLod(Camera.main, true);
             VisualLayoutHash = showProps ? VisualLayoutHasher.Compute(profile, visualPlacements) : "00000000";
             TotalInstanceCount = (caveSurfaceMesh == null ? 0 : 1) + VoxelGeometryInstanceCount + visualBatches.InstanceCount;
         }
@@ -110,6 +117,10 @@ namespace Llm2Pcg.Rendering
             DestroyCaveSurface();
             visualBatches.Clear();
             visualPlacements.Clear();
+            currentVisualLods = Array.Empty<int>();
+            Array.Clear(lodPlacementCounts, 0, lodPlacementCounts.Length);
+            hasLodCameraState = false;
+            LodRebuildCount = 0;
             voxelFloorBatches.Clear();
             voxelRockBatches.Clear();
             VisualLayoutHash = "00000000";
@@ -126,10 +137,51 @@ namespace Llm2Pcg.Rendering
 
         private void Update()
         {
+            RefreshVisualLod(Camera.main);
             SubmitCaveSurface();
             SubmitVoxelBatches(voxelFloorBatches, surfaceMaterials[CaveSurfaceMeshBuilder.FloorSubmesh]);
             SubmitVoxelBatches(voxelRockBatches, surfaceMaterials[CaveSurfaceMeshBuilder.RockSubmesh]);
             visualBatches.Submit(gameObject.layer);
+        }
+
+        public bool RefreshVisualLod(Camera camera, bool force = false)
+        {
+            if (!force && camera != null && hasLodCameraState &&
+                (camera.transform.position - lastLodCameraPosition).sqrMagnitude < .25f &&
+                camera.orthographic == lastLodOrthographic &&
+                Mathf.Approximately(camera.fieldOfView, lastLodFieldOfView) &&
+                Mathf.Approximately(camera.orthographicSize, lastLodOrthographicSize)) return false;
+
+            if (camera != null)
+            {
+                lastLodCameraPosition = camera.transform.position;
+                lastLodFieldOfView = camera.fieldOfView;
+                lastLodOrthographicSize = camera.orthographicSize;
+                lastLodOrthographic = camera.orthographic;
+                hasLodCameraState = true;
+            }
+
+            bool changed = force || currentVisualLods.Length != visualPlacements.Count;
+            if (currentVisualLods.Length != visualPlacements.Count) currentVisualLods = new int[visualPlacements.Count];
+            for (int index = 0; index < visualPlacements.Count; index++)
+            {
+                int selected = camera == null ? 0 : VisualLodSelector.SelectLodIndex(visualPlacements[index], camera);
+                if (currentVisualLods[index] != selected) { currentVisualLods[index] = selected; changed = true; }
+            }
+            if (!changed) return false;
+
+            visualBatches.Clear();
+            Array.Clear(lodPlacementCounts, 0, lodPlacementCounts.Length);
+            for (int index = 0; index < visualPlacements.Count; index++)
+            {
+                int lod = currentVisualLods[index];
+                visualBatches.Add(visualPlacements[index], lod);
+                if (lod >= 0 && lod < lodPlacementCounts.Length) lodPlacementCounts[lod]++;
+            }
+            visualBatches.Build();
+            TotalInstanceCount = (caveSurfaceMesh == null ? 0 : 1) + VoxelGeometryInstanceCount + visualBatches.InstanceCount;
+            LodRebuildCount++;
+            return true;
         }
 
         private void BuildVoxelGeometry(CaveWorldData world)

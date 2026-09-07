@@ -96,7 +96,7 @@ namespace Llm2Pcg.Presentation
                 originalCameraParent = targetCamera.transform.parent;
                 originalCameraPosition = targetCamera.transform.position;
                 originalCameraRotation = targetCamera.transform.rotation;
-                if (cameraFramer != null) cameraFramer.enabled = false;
+                if (cameraFramer != null) cameraFramer.SetFramingSuspended(true);
                 RebuildForestTreeCollisions(world);
                 PlaceAtStart(world);
                 targetCamera.transform.SetParent(dummy.transform, false);
@@ -119,7 +119,7 @@ namespace Llm2Pcg.Presentation
                 }
                 if (cameraFramer != null)
                 {
-                    cameraFramer.enabled = true;
+                    cameraFramer.SetFramingSuspended(false);
                     if (generationController?.LastGeneratedData != null) cameraFramer.FrameWorld(generationController.LastGeneratedData);
                 }
             }
@@ -156,24 +156,21 @@ namespace Llm2Pcg.Presentation
                 int y = Mathf.RoundToInt(candidate.z + offsets[zIndex]);
                 if (!world.IsWalkable(x, y) || Mathf.Abs(MovementSurfaceHeight(world, candidate.x + offsets[xIndex], candidate.z + offsets[zIndex], x, y) - currentHeight) > maximumStep) return false;
             }
-            if (world is BiomeWorldData biome && NatureWorldTypes.IsForestFamily(biome.WorldType))
+            if (treeCollisions != null)
             {
-                if (treeCollisions != null)
+                for (int i = 0; i < treeCollisions.Count; i++)
                 {
-                    for (int i = 0; i < treeCollisions.Count; i++)
-                    {
-                        ForestTreeCollision tree = treeCollisions[i];
-                        float dx = candidate.x - tree.X, dz = candidate.z - tree.Z;
-                        if (dx * dx + dz * dz < (tree.Radius + radius) * (tree.Radius + radius)) return false;
-                    }
+                    ForestTreeCollision tree = treeCollisions[i];
+                    float dx = candidate.x - tree.X, dz = candidate.z - tree.Z;
+                    if (dx * dx + dz * dz < (tree.Radius + radius) * (tree.Radius + radius)) return false;
                 }
-                else
+            }
+            else if (world is BiomeWorldData biome && NatureWorldTypes.IsForestFamily(biome.WorldType))
+            {
+                for (int i = 0; i < biome.Props.Count; i++)
                 {
-                    for (int i = 0; i < biome.Props.Count; i++)
-                    {
-                        float dx = candidate.x - biome.Props[i].X, dz = candidate.z - biome.Props[i].Y;
-                        if (dx * dx + dz * dz < (.35f + radius) * (.35f + radius)) return false;
-                    }
+                    float dx = candidate.x - biome.Props[i].X, dz = candidate.z - biome.Props[i].Y;
+                    if (dx * dx + dz * dz < (.35f + radius) * (.35f + radius)) return false;
                 }
             }
             return true;
@@ -209,9 +206,15 @@ namespace Llm2Pcg.Presentation
         private void RebuildForestTreeCollisions(IPCGNavigableWorldData world)
         {
             forestTreeCollisions.Clear();
-            if (!(world is BiomeWorldData biome) || !NatureWorldTypes.IsForestFamily(biome.WorldType)) return;
+            if (!(world is BiomeWorldData biome)) return;
             if (generationController?.LastRequest?.presentationSettings?.propsEnabled == false) return;
             BiomeVisualProfile profile = VisualProfileLoader.Load(biome.WorldType);
+            if (biome.WorldType == PCGRequest.CityWorldType)
+            {
+                forestTreeCollisions.AddRange(VisualWorldLayoutBuilder.BuildCityPropCollisions(biome, profile));
+                return;
+            }
+            if (!NatureWorldTypes.IsForestFamily(biome.WorldType)) return;
             forestTreeCollisions.AddRange(VisualWorldLayoutBuilder.BuildNatureTreeCollisions(biome, profile, generationController?.LastRequest?.visualSettings));
         }
 

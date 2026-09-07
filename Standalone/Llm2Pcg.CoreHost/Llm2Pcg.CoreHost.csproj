@@ -8,6 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <Compile Include="../../Packages/com.heparidayo.llm2pcg/Tests/Editor/PcgCoreRegressionChecks.cs" Link="Tests/PcgCoreRegressionChecks.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../Llm2Pcg.Core/Llm2Pcg.Core.csproj" />

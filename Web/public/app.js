@@ -176,10 +176,13 @@ async function displayResult(result) {
     ["Unity", "Not required"]
   ].map(([term, value]) => `<div><dt>${escapeHtml(term)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("");
   renderStatistics(result.world.statistics, result.world.width * result.world.height);
-  elements["result-summary"].textContent = JSON.stringify({ request: result.request, world: state.summary }, null, 2);
+  elements["result-summary"].textContent = JSON.stringify({ interpretation: result.interpretation, request: result.request, world: state.summary }, null, 2);
   elements["render-unity"].disabled = false;
   setUnityHandoffStatus("ready", `Web 결과 ${result.world.worldHash} 준비됨 · Unity Play Mode에서 전송하세요.`);
-  elements["footer-message"].textContent = `${result.world.worldType} generated · ${result.world.worldHash}`;
+  const warnings=result.interpretation?.warnings??[];
+  elements["footer-message"].textContent = warnings.length
+    ? warnings.map(w=>w.message).join(" ")
+    : `${result.world.worldType} generated · ${result.world.worldHash}`;
 }
 
 function renderStatistics(statistics, total) {

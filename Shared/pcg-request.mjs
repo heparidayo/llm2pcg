@@ -27,18 +27,22 @@ export function validatePcgRequest(input) {
   const r=upgradePcgRequest(input);
   if(!r||typeof r!=="object"||Array.isArray(r))return "Request must be a JSON object.";
   if(r.schemaVersion!==3)return "schemaVersion must be 1, 2, or 3.";
-  if(!Number.isInteger(r.seed)||!Number.isInteger(r.mapWidth)||!Number.isInteger(r.mapHeight)||r.mapWidth<1||r.mapHeight<1)return "seed and map dimensions are invalid.";
-  const contract=WORLD_CONTRACTS[r.worldType]; if(!contract)return "Unsupported worldType.";
+  if(!Number.isInteger(r.seed)||r.seed < -2147483648||r.seed > 2147483647||!Number.isInteger(r.mapWidth)||!Number.isInteger(r.mapHeight)||r.mapWidth<16||r.mapHeight<16||r.mapWidth>500||r.mapHeight>500)return "seed must be Int32 and map dimensions must be integers in 16..500.";
+  const contract=Object.hasOwn(WORLD_CONTRACTS,r.worldType)?WORLD_CONTRACTS[r.worldType]:null; if(!contract)return "Unsupported worldType.";
   if(r.generatorVersion!==contract.version)return "generatorVersion does not match worldType.";
   if(r.biome!==contract.biome||!contract.profiles.includes(r.generationProfile))return "biome or generationProfile does not match worldType.";
   if(!r.generatorSettings||typeof r.generatorSettings!=="object")return "generatorSettings is required.";
   const active=["dungeon","cave","forest","city"].filter(k=>r.generatorSettings[k]!=null);
   if(active.length!==1||active[0]!==contract.branch)return "Exactly one matching generatorSettings branch is required.";
+  const numericError=validateNumericSettings(r.generatorSettings[contract.branch],contract.branch);
+  if(numericError)return numericError;
   const p=r.propSettings; if(!p||typeof p.enabled!=="boolean"||typeof p.density!=="number"||p.density<0||p.density>1||!Number.isInteger(p.maxCount)||!Array.isArray(p.allowedTypes))return "propSettings is invalid.";
+  if(!Number.isFinite(p.density)||p.maxCount<0||!p.allowedTypes.every(t=>["Pillar","Crate","Crystal","Torch"].includes(t)))return "propSettings is invalid.";
   const v=r.visualSettings;if(!v||![v.trees,v.rocks,v.bushes,v.groundDetails,v.waterProps].every(validVisualCategory))return "visualSettings is invalid.";
+  for(const [name,types] of Object.entries(CATEGORY_TYPES))if(!v[name].allowedTypes.every(t=>types.includes(t)))return "visualSettings."+name+".allowedTypes contains a type for another category.";
   const presentation=r.presentationSettings;if(!presentation||!["Voxel","Surface"].includes(presentation.geometryMode)||typeof presentation.propsEnabled!=="boolean")return "presentationSettings is invalid.";
   if(!validLayout(r.layoutSettings))return "layoutSettings is invalid.";
-  if(r.worldType==="Dungeon"){const s=r.generatorSettings.dungeon;if(!s||s.maxDepth<1||s.minLeafSize<1||s.minLeafSize>=r.mapWidth||s.minLeafSize>=r.mapHeight)return "Dungeon settings are invalid.";for(const k of ["boss","treasure","shop","secret"])if(!r.specialRooms?.[k])return "Dungeon specialRooms are required.";}
+  if(r.worldType==="Dungeon"){const s=r.generatorSettings.dungeon;if(!s||s.maxDepth<1||s.minLeafSize<1||s.minLeafSize>=r.mapWidth||s.minLeafSize>=r.mapHeight)return "Dungeon settings are invalid.";for(const k of ["boss","treasure","shop","secret"]){const room=r.specialRooms?.[k];if(!room||typeof room.enabled!=="boolean"||!Number.isInteger(room.count)||room.count<0||typeof room.placement!=="string"||!room.placement.length)return "Dungeon specialRooms are invalid.";}}
   if(r.worldType==="Cave"){const s=r.generatorSettings.cave;if(!s||s.fillPercent<20||s.fillPercent>80||s.automataSteps<1||s.minimumRegionSize<1||s.tunnelRadius<1||s.extraTunnelCount<0)return "Cave settings are invalid.";}
   if(r.worldType==="Forest"||r.worldType==="Swamp"||r.worldType==="Snowfield"||r.worldType==="Desert"){const s=r.generatorSettings.forest;if(!s||s.waterThreshold<0||s.waterThreshold>1||s.noiseOctaves<1||s.noiseOctaves>8||s.clearingRadius<=0||s.vegetationMinDistance<=0||s.vegetationMaxCount<0||s.elevationScale<=0||s.elevationScale>64||s.elevationFrequency<=0||s.elevationFrequency>1)return "Nature settings are invalid.";}
   if(r.worldType==="City"){const s=r.generatorSettings.city;if(!s||s.hubMinDistance<=0||s.hubMaxCount<2||s.roadWidth<1||s.extraLoopCount<0||s.wfcBacktrackLimit<0||s.wfcRestartLimit<0||s.buildingMinHeight<1||s.buildingMaxHeight<s.buildingMinHeight||s.buildingMaxHeight>128)return "City settings are invalid.";}
@@ -63,7 +67,28 @@ function defaultPresentation(){return {geometryMode:"Surface",propsEnabled:true}
 function normalizePresentation(value){return value&&typeof value.geometryMode==="string"?value:defaultPresentation();}
 function defaultLayout(){return {landform:{kind:"None",placement:"Seeded",size:"Medium",intensity:"Medium"},water:{kind:"Default",placement:"Seeded",size:"Medium",meander:"Low",exclusive:false},route:{kind:"Default",placement:"Seeded",size:"Medium",orientation:"Seeded",meander:"Low"}};}
 function normalizeLayout(value){const defaults=defaultLayout();return {landform:value?.landform??defaults.landform,water:value?.water??defaults.water,route:value?.route??defaults.route};}
-function validVisualCategory(value){return value&&typeof value.density==="number"&&value.density>=0&&value.density<=1&&Number.isInteger(value.maxCount)&&value.maxCount>=0&&Array.isArray(value.allowedTypes)&&value.allowedTypes.every(type=>VISUAL_TYPES.has(type));}
+function validVisualCategory(value){return value&&Number.isFinite(value.density)&&value.density>=0&&value.density<=1&&Number.isInteger(value.maxCount)&&value.maxCount>=0&&value.maxCount<=10000&&Array.isArray(value.allowedTypes)&&value.allowedTypes.every(type=>VISUAL_TYPES.has(type));}
 function validLayout(value){return value&&value.landform&&value.water&&value.route&&value.landform.kind==="None"&&value.landform.placement==="Seeded"&&value.landform.size==="Medium"&&value.landform.intensity==="Medium"&&value.water.kind==="Default"&&value.water.placement==="Seeded"&&value.water.size==="Medium"&&value.water.meander==="Low"&&value.water.exclusive===false&&value.route.kind==="Default"&&value.route.placement==="Seeded"&&value.route.size==="Medium"&&value.route.orientation==="Seeded"&&value.route.meander==="Low";}
 const VISUAL_TYPES=new Set(["cherry_blossom","broadleaf","conifer","willow","dead_tree","palm","cactus","rock","bush","reeds","grass","flower","plant","mushroom","stump","log","branch","thorn","lily_pad","water_lily","ice"]);
+// These bounds mirror Shared/Schema/pcg-request.schema.json; schema parity is tested.
+const NUMBER_RULES={
+  dungeon:{maxDepth:[1,12,true],minLeafSize:[3,200,true]},
+  cave:{fillPercent:[20,80,true],automataSteps:[1,12,true],minimumRegionSize:[1,1000,true],tunnelRadius:[1,5,true],extraTunnelCount:[0,16,true]},
+  forest:{waterThreshold:[0,1],noiseOctaves:[1,8,true],clearingRadius:[0,64,false,true],vegetationMinDistance:[0,32,false,true],vegetationMaxCount:[0,10000,true],elevationScale:[0,64,false,true],elevationFrequency:[0,1,false,true]},
+  city:{hubMinDistance:[0,128,false,true],hubMaxCount:[2,64,true],roadWidth:[1,8,true],extraLoopCount:[0,32,true],wfcBacktrackLimit:[0,10000,true],wfcRestartLimit:[0,32,true],buildingMinHeight:[1,128],buildingMaxHeight:[1,128]}
+};
+const CATEGORY_TYPES={
+  trees:["cherry_blossom","broadleaf","conifer","willow","dead_tree","palm","cactus"],
+  rocks:["rock","ice"],bushes:["bush","reeds"],
+  groundDetails:["grass","flower","plant","mushroom","stump","log","branch","thorn"],
+  waterProps:["lily_pad","water_lily","reeds","palm","ice"]
+};
+function validateNumericSettings(settings,branch){
+  for(const [name,[min,max,integer,exclusive]] of Object.entries(NUMBER_RULES[branch])){
+    const value=settings?.[name];
+    if(!Number.isFinite(value)||(integer&&!Number.isInteger(value))||value>max||(exclusive?value<=min:value<min))
+      return "generatorSettings."+branch+"."+name+" must be a finite "+(integer?"integer":"number")+" in "+(exclusive?"(":"[")+min+", "+max+"].";
+  }
+  return null;
+}
 function disabledRooms(){return {boss:{enabled:false,count:0,placement:"FarthestFromStart"},treasure:{enabled:false,count:0,placement:"FarthestFromStart"},shop:{enabled:false,count:0,placement:"FarthestFromStart"},secret:{enabled:false,count:0,placement:"FarthestFromStart"}};}

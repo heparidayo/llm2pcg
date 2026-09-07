@@ -23,8 +23,9 @@ namespace Llm2Pcg.Tests.EditMode
             Assert.That(world.ComputeStableHash(), Is.EqualTo(worldHash));
             Assert.That(first.GridWidth, Is.EqualTo(257));
             Assert.That(first.GridHeight, Is.EqualTo(257));
-            Assert.That(first.TriangleCount, Is.EqualTo(128 * 128 * 8 + first.BoundaryEdgeCount * 4));
-            Assert.That(first.VertexCount, Is.EqualTo(257 * 257 * 2 + first.BoundaryEdgeCount * 8));
+            Assert.That(first.TriangleCount, Is.EqualTo(128 * 128 * 8 + first.BoundaryEdgeCount * 4 * CaveSurfaceMeshBuilder.WallBandCount));
+            int capVertices = first.SubmeshTriangles[CaveSurfaceMeshBuilder.RockSubmesh].Length;
+            Assert.That(first.VertexCount, Is.EqualTo(257 * 257 * 2 + capVertices + first.BoundaryEdgeCount * 8 * CaveSurfaceMeshBuilder.WallBandCount));
         }
 
         [Test]
@@ -51,7 +52,7 @@ namespace Llm2Pcg.Tests.EditMode
             Assert.That(data.SubmeshTriangles[CaveSurfaceMeshBuilder.FloorSubmesh].Length / 3, Is.EqualTo(8));
             Assert.That(data.SubmeshTriangles[CaveSurfaceMeshBuilder.RockSubmesh].Length / 3, Is.EqualTo(8 * 8));
             Assert.That(data.BoundaryEdgeCount, Is.EqualTo(4));
-            Assert.That(data.SubmeshTriangles[CaveSurfaceMeshBuilder.WallSubmesh].Length / 3, Is.EqualTo(16));
+            Assert.That(data.SubmeshTriangles[CaveSurfaceMeshBuilder.WallSubmesh].Length / 3, Is.EqualTo(16 * CaveSurfaceMeshBuilder.WallBandCount));
 
             Mesh mesh = CaveSurfaceMeshBuilder.CreateMesh(data);
             Assert.That(mesh.subMeshCount, Is.EqualTo(3));

@@ -30,6 +30,7 @@ namespace Llm2Pcg.Core
         public List<WorldConnection> Connections { get; init; } = new List<WorldConnection>();
         public List<WorldProp> Props { get; init; } = new List<WorldProp>();
         public Dictionary<string, int> Statistics { get; init; } = new Dictionary<string, int>(StringComparer.Ordinal);
+        public List<PCGGenerationDiagnostic> Diagnostics { get; init; } = new List<PCGGenerationDiagnostic>();
     }
 
     public sealed class WorldPoint
@@ -74,13 +75,16 @@ namespace Llm2Pcg.Core
         private static readonly string[] CaveLegend = { "Open", "Solid" };
         private static readonly string[] BiomeLegend = { "Ground", "Water", "Path", "Road", "Building", "Park" };
 
-        public static GeneratedWorldDocument Create(IPCGWorldData world)
+        public static GeneratedWorldDocument Create(IPCGWorldData world, PCGRequest request = null)
         {
             if (world == null) throw new ArgumentNullException(nameof(world));
-            if (world is DungeonWorldData dungeon) return CreateDungeon(dungeon);
-            if (world is CaveWorldData cave) return CreateCave(cave);
-            if (world is BiomeWorldData biome) return CreateBiome(biome);
-            throw new ArgumentException("Unsupported generated world data type: " + world.GetType().FullName, nameof(world));
+            GeneratedWorldDocument document;
+            if (world is DungeonWorldData dungeon) document = CreateDungeon(dungeon);
+            else if (world is CaveWorldData cave) document = CreateCave(cave);
+            else if (world is BiomeWorldData biome) document = CreateBiome(biome);
+            else throw new ArgumentException("Unsupported generated world data type: " + world.GetType().FullName, nameof(world));
+            if (request != null) document.Diagnostics.AddRange(PCGGenerationDiagnostics.Inspect(request, world));
+            return document;
         }
 
         private static GeneratedWorldDocument CreateDungeon(DungeonWorldData world)

@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { upgradePcgRequest, validatePcgRequest } from "../../Shared/pcg-request.mjs";
+import { analyzePrompt, applyExplicitNumbers, applyVisualIntent, explicitPropsIntent } from "./prompt-intent.mjs";
 
 const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
 const publicDirectory = path.resolve(moduleDirectory, "../public");
@@ -63,6 +64,12 @@ function toOpenAiStrictSchema(value) {
 }
 
 export function extractOutputText(response) {
+  if (response?.status && response.status !== "completed")
+    throw Object.assign(new Error("OpenAI response did not complete."), {code:"OPENAI_INCOMPLETE_RESPONSE"});
+  for (const item of response?.output ?? [])
+    for (const content of item.content ?? [])
+      if(content.type==="refusal")
+        throw Object.assign(new Error("OpenAI declined to translate this request."), {code:"OPENAI_REFUSAL"});
   if (typeof response.output_text === "string" && response.output_text.length > 0) return response.output_text;
   for (const item of response.output ?? []) {
     for (const content of item.content ?? []) {
@@ -84,8 +91,8 @@ export function applyPresentationIntent(prompt, request) {
   const voxelPreset = /(초기\s*복셀|복셀\s*(?:만|버전|단계)|voxel\s*(?:only|version|stage))/i.test(text);
   const voxelWithPropsPreset = /(프롭\s*\+\s*복셀|복셀\s*\+\s*프롭|프롭[^.!?\n]{0,12}(?:들어|포함|있는|사용)[^.!?\n]{0,12}복셀|voxel\s*with\s*props)/i.test(text);
   const surfaceWithoutPropsPreset = /((?:비|논)\s*복셀[^.!?\n]{0,16}(?:표면|프롭|모델링)|(?:표면|surface)[^.!?\n]{0,16}(?:만|프롭\s*없|모델링\s*없)|surface\s*(?:only|without\s*props))/i.test(text);
-  const noProps = /((?:프롭|모델링|모델\s*에셋|에셋)[^.!?\n]{0,14}(?:없|빼|제외|끄|미사용|안\s*들어)|(?:없|빼|제외|끄|미사용)[^.!?\n]{0,14}(?:프롭|모델링|모델\s*에셋|에셋)|without\s+(?:modeled\s+)?(?:props?|assets?))/i.test(text);
-  const withProps = /((?:프롭|모델링|모델\s*에셋|에셋)[^.!?\n]{0,14}(?:있|들어|포함|사용|켜|추가)|with\s+(?:modeled\s+)?(?:props?|assets?))/i.test(text);
+  const noProps = explicitPropsIntent(prompt) === false;
+  const withProps = explicitPropsIntent(prompt) === true;
   const hasExplicitPresentationIntent = pureVoxelPreset || naturalTerrainWithAssetsPreset || naturalTerrainWithoutPropsPreset || completePreset || voxelPreset || voxelWithPropsPreset || surfaceWithoutPropsPreset || noProps || withProps;
 
   // A model response without an explicit presentation instruction must never turn
@@ -116,65 +123,38 @@ export function applyPresentationIntent(prompt, request) {
   }
 
   request.presentationSettings = presentation;
+  // A named preset must not override an explicit omission.
+  if (noProps) presentation.propsEnabled = false;
   return request;
 }
 
-const visualCategories = [
-  ["trees", ["나무", "수목", "트리", "tree", "vegetation"]],
-  ["rocks", ["바위", "돌", "rock"]],
-  ["bushes", ["덤불", "관목", "bush", "reeds"]],
-  ["groundDetails", ["풀", "꽃", "식물", "버섯", "그루터기", "통나무", "가지", "ground"]],
-  ["waterProps", ["수초", "연꽃", "water lily", "lily", "갈대", "water prop"]]
-];
+// Keep the established public helper while using target-scoped domain parsing.
+export const applyDefaultWorldComponents = applyVisualIntent;
 
-function defaultVisualCategory() {
-  return { density: 1, maxCount: 0, allowedTypes: [] };
-}
-
-const defaultForestWaterThreshold = 0.20;
-
-function explicitlyRequestsWetForest(text) {
-  return [
-    /(?:물|호수|강|수로)[^.!?\n]{0,12}(?:많|가득|풍부|넘치|투성이|여러)/,
-    /(?:습한|습윤한|침수된|범람한|늪\s*(?:같은|처럼)|늪지\s*(?:같은|처럼))(?:\s*(?:숲|산림))?/,
-    /\b(?:wet|water[- ]rich|flooded|swampy)\b/i
-  ].some(pattern => pattern.test(text));
-}
-
-// A normal temperate forest uses a small amount of water. OpenAI may choose a
-// much higher threshold even when the prompt only describes trees or visuals,
-// so clamp that implicit choice while preserving explicit wet-forest requests.
 export function applyForestWaterPolicy(prompt, request) {
   if (request?.worldType !== "Forest" || !request.generatorSettings?.forest) return request;
   const text = String(prompt ?? "").normalize("NFKC").toLowerCase();
-  const current = Number(request.generatorSettings.forest.waterThreshold);
-  if (!Number.isFinite(current)) request.generatorSettings.forest.waterThreshold = defaultForestWaterThreshold;
-  else if (!explicitlyRequestsWetForest(text)) request.generatorSettings.forest.waterThreshold = Math.min(current, defaultForestWaterThreshold);
+  const explicit = analyzePrompt(prompt).constraints.some(c=>c.path==="generatorSettings.forest.waterThreshold");
+  if (explicit) return applyExplicitNumbers(prompt,request);
+  const wet = /(?:물|호수|강|수로)[^.!?\n]{0,12}(?:많|가득|풍부|넘치|투성이|여러)|습한|습윤한|침수된|범람한|늪\s*(?:같은|처럼)|\b(?:wet|water[- ]rich|flooded|swampy)\b/i.test(text);
+  const current=request.generatorSettings.forest.waterThreshold;
+  if (!Number.isFinite(current)) return request; // Validation must expose malformed model values.
+  if (!wet) request.generatorSettings.forest.waterThreshold=Math.min(current,.20);
   return request;
 }
 
-function hasExplicitExclusion(text, terms) {
-  const exclusion = "(?:없|빼|제외|제거|미사용|사용하지|배치하지|넣지|표시하지|안\\s*(?:배치|넣|두|보이))";
-  return terms.some(term => new RegExp(`(?:${term})[^.!?\\n]{0,20}${exclusion}|${exclusion}[^.!?\\n]{0,20}(?:${term})`, "i").test(text));
-}
-
-// OpenAI still performs the semantic translation, but this deterministic post-pass
-// protects the product default visual categories unless the user explicitly requests
-// an omission.
-export function applyDefaultWorldComponents(prompt, request) {
-  const text = String(prompt ?? "").normalize("NFKC").toLowerCase();
-  const visualSettings = request.visualSettings ?? {};
-  for (const [name, terms] of visualCategories) {
-    const current = visualSettings[name];
-    if (hasExplicitExclusion(text, terms)) {
-      visualSettings[name] = { density: 0, maxCount: 0, allowedTypes: current?.allowedTypes ?? [] };
-    } else if (!current || current.density <= 0) {
-      visualSettings[name] = { ...defaultVisualCategory(), allowedTypes: current?.allowedTypes ?? [] };
-    }
-  }
-  request.visualSettings = visualSettings;
-
-  return request;
+export function finalizePcgInterpretation(prompt,candidate) {
+  const validationError=validatePcgRequest(candidate);
+  if(validationError) throw Object.assign(new Error(validationError),{code:"OPENAI_INVALID_CONTRACT"});
+  const request=structuredClone(upgradePcgRequest(candidate));
+  applyPresentationIntent(prompt,request);
+  applyDefaultWorldComponents(prompt,request);
+  applyForestWaterPolicy(prompt,request);
+  applyExplicitNumbers(prompt,request);
+  const finalError=validatePcgRequest(request);
+  if(finalError) throw Object.assign(new Error(finalError),{code:"INVALID_PROMPT_CONSTRAINT"});
+  const interpretation=analyzePrompt(prompt);
+  return {request,interpretation};
 }
 
 export async function requestPcgFromOpenAi(prompt, fetchImplementation = fetch) {
@@ -184,14 +164,17 @@ export async function requestPcgFromOpenAi(prompt, fetchImplementation = fetch) 
     throw error;
   }
 
+  const lexicalIntent=analyzePrompt(prompt);
   const response = await fetchImplementation("https://api.openai.com/v1/responses", {
     method: "POST",
+    signal: AbortSignal.timeout(60000),
     headers: {
       "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
       model: openAiModel,
+      store: false,
       input: [
         {
           role: "developer",
@@ -204,6 +187,10 @@ export async function requestPcgFromOpenAi(prompt, fetchImplementation = fetch) 
         {
           role: "developer",
           content: "Always emit presentationSettings. It changes rendering only and never the generated world. Default -> Surface,true. 순수 복셀/복셀 버전 -> Voxel,true; the Web renderer draws both terrain and props as voxels. 자연스러운 지형 with 프롭 제외/프롭 없이 -> Surface,false. 자연스러운 지형 with 프롭 에셋 추가, 완성형/최종/finished -> Surface,true. Explicitly omitting props/assets always sets propsEnabled false. When geometry and prop wording are separate, obey both explicitly."
+        },
+        {
+          role:"developer",
+          content:"Domain lexer constraints from the user are listed below. Preserve these explicit values; maxCount is an upper bound, not an exact placement guarantee. For all other meaning use the user's description. Capability warnings describe limits, not supported features. Do not turn a subtype exclusion into deleting the whole category.\n"+JSON.stringify({constraints:lexicalIntent.constraints.map(({path,value})=>({path,value})),warnings:lexicalIntent.warnings.map(({code})=>code)})
         },
         { role: "user", content: prompt }
       ],
@@ -218,7 +205,9 @@ export async function requestPcgFromOpenAi(prompt, fetchImplementation = fetch) 
     })
   });
 
-  const body = await response.json();
+  const body = await response.json().catch(() => {
+    throw Object.assign(new Error("OpenAI returned a non-JSON response."),{code:"OPENAI_INVALID_RESPONSE"});
+  });
   if (!response.ok) {
     const error = new Error(body.error?.message ?? "OpenAI request failed.");
     error.code = "OPENAI_REQUEST_FAILED";
@@ -229,21 +218,13 @@ export async function requestPcgFromOpenAi(prompt, fetchImplementation = fetch) 
   try {
     request = JSON.parse(extractOutputText(body));
   } catch (cause) {
+    if (cause.code === "OPENAI_REFUSAL" || cause.code === "OPENAI_INCOMPLETE_RESPONSE") throw cause;
     const error = new Error("OpenAI returned invalid PCG JSON.");
     error.code = "OPENAI_INVALID_JSON";
     error.cause = cause;
     throw error;
   }
-  applyPresentationIntent(prompt, request);
-  applyDefaultWorldComponents(prompt, request);
-  applyForestWaterPolicy(prompt, request);
-  const validationError = validatePcgRequest(request);
-  if (validationError) {
-    const error = new Error(validationError);
-    error.code = "OPENAI_INVALID_CONTRACT";
-    throw error;
-  }
-  return request;
+  return finalizePcgInterpretation(prompt, request).request;
 }
 
 export async function sendToCore(request, fetchImplementation = fetch) {
@@ -399,8 +380,11 @@ export function createWebServer({ requestPcg = requestPcgFromOpenAi, sendRequest
       const generationPaths = ["/api/generate", "/api/generate-direct", "/api/render-unity", "/api/unity/generate", "/api/unity/generate-direct"];
       if (request.method !== "POST" || !generationPaths.includes(pathname)) return sendJson(response, 404, { ok: false, code: "NOT_FOUND" });
 
-      const body = await readJsonBody(request);
-      let pcgRequest;
+      let body;
+      try { body=await readJsonBody(request); }
+      catch { return sendJson(response,400,{ok:false,code:"INVALID_JSON_BODY",message:"A valid JSON request body is required (maximum 65536 characters)."}); }
+      if(!body||typeof body!=="object"||Array.isArray(body))return sendJson(response,400,{ok:false,code:"INVALID_JSON_BODY",message:"A JSON object is required."});
+      let pcgRequest, interpretation;
       if (pathname === "/api/generate-direct" || pathname === "/api/render-unity" || pathname === "/api/unity/generate-direct") {
         pcgRequest = upgradePcgRequest(body.request);
         const validationError = validatePcgRequest(pcgRequest);
@@ -408,7 +392,7 @@ export function createWebServer({ requestPcg = requestPcgFromOpenAi, sendRequest
       } else {
         const prompt = body.prompt;
         if (typeof prompt !== "string" || prompt.trim().length === 0 || prompt.length > 4000) return sendJson(response, 400, { ok: false, code: "INVALID_PROMPT", message: "prompt must be non-empty and at most 4000 characters." });
-        pcgRequest = await requestPcg(prompt.trim());
+        ({request:pcgRequest,interpretation}=finalizePcgInterpretation(prompt.trim(),await requestPcg(prompt.trim())));
       }
       if (pathname === "/api/render-unity") {
         const unityResponse = await sendRequestToUnity(pcgRequest);
@@ -416,12 +400,14 @@ export function createWebServer({ requestPcg = requestPcgFromOpenAi, sendRequest
       }
       if (pathname.startsWith("/api/unity/")) {
         const unityResponse = await sendRequestToUnity(pcgRequest);
-        return sendJson(response, 202, { ok: true, request: pcgRequest, unityStatus: unityResponse.status, unity: unityResponse.payload });
+        return sendJson(response, 202, { ok: true, request: pcgRequest, interpretation, unityStatus: unityResponse.status, unity: unityResponse.payload });
       }
       const coreResponse = await sendRequestToCore(pcgRequest);
-      return sendJson(response, 200, { ok: true, request: pcgRequest, world: coreResponse.world });
+      return sendJson(response, 200, { ok: true, request: pcgRequest, interpretation, world: coreResponse.world });
     } catch (error) {
-      const status = ["OPENAI_API_KEY_MISSING", "CORE_HOST_UNAVAILABLE", "UNITY_BRIDGE_UNAVAILABLE"].includes(error.code) ? 503 : 502;
+      const status = error.code==="INVALID_PROMPT_CONSTRAINT" ? 400
+        : error.code==="OPENAI_REFUSAL" ? 422
+        : ["OPENAI_API_KEY_MISSING", "CORE_HOST_UNAVAILABLE", "UNITY_BRIDGE_UNAVAILABLE"].includes(error.code) ? 503 : 502;
       return sendJson(response, status, { ok: false, code: error.code ?? "WEB_PIPELINE_ERROR", message: error.message });
     }
   });

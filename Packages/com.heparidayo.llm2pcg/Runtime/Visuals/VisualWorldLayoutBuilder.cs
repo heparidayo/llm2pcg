@@ -324,21 +324,25 @@ namespace Llm2Pcg.Visuals
                 string categoryId = null;
                 int stage = 0;
                 Vector3 position = Vector3.zero, targetSize = Vector3.one;
-                if (!walkable && rockCount < CaveRockDetailMaximum && HasWalkableNeighbour(world, x, y) && StableCell(world.Seed, x, y, 3200) % 29u == 0u)
+                if (!walkable && rockCount < CaveRockDetailMaximum && HasWalkableNeighbour(world, x, y) && StableCell(world.Seed, x, y, 3200) % 7u == 0u)
                 {
                     categoryId = VisualCategoryIds.CaveRocks;
                     stage = 0;
-                    position = new Vector3(x * tileSize, CaveSurfaceMeshBuilder.SampleRockSurfaceHeight(world, x, y) + .28f, y * tileSize);
-                    targetSize = Vector3.one * .62f * tileSize;
+                    position = new Vector3(x * tileSize, CaveSurfaceMeshBuilder.SampleRockSurfaceHeight(world, x, y) - .12f, y * tileSize);
+                    targetSize = Vector3.one * .85f * tileSize;
                 }
-                else if (walkable && crystalCount < CaveCrystalMaximum && !IsNear(x, y, world.StartPosition, 2) && !IsNear(x, y, world.ExitPosition, 2) && HasSolidNeighbour(world, x, y) && StableCell(world.Seed, x, y, 3210) % 67u == 0u)
+                else if (walkable && crystalCount < CaveCrystalMaximum && !IsNear(x, y, world.StartPosition, 2) && !IsNear(x, y, world.ExitPosition, 2) && HasSolidNeighbour(world, x, y) && StableCell(world.Seed, x, y, 3210) % 9u == 0u)
                 {
                     categoryId = VisualCategoryIds.CaveCrystals;
                     stage = 1;
                     position = new Vector3(x * tileSize, CaveSurfaceMeshBuilder.SampleSurfaceHeight(world, x, y) + .05f, y * tileSize);
-                    targetSize = new Vector3(.36f, .72f, .36f) * tileSize;
+                    // Root crystals in the recessed wall, away from corridor centerlines.
+                    Vector3 wallDirection = !world.IsWalkable(x + 1, y) ? Vector3.right :
+                        !world.IsWalkable(x - 1, y) ? Vector3.left : !world.IsWalkable(x, y + 1) ? Vector3.forward : Vector3.back;
+                    position += wallDirection * (.54f * tileSize);
+                    targetSize = new Vector3(.55f, 1.1f, .55f) * tileSize;
                 }
-                else if (walkable && groundDetailCount < CaveGroundDetailMaximum && !IsNear(x, y, world.StartPosition, 2) && !IsNear(x, y, world.ExitPosition, 2) && HasSolidNeighbour(world, x, y) && StableCell(world.Seed, x, y, 3220) % 97u == 0u)
+                else if (walkable && groundDetailCount < CaveGroundDetailMaximum && !IsNear(x, y, world.StartPosition, 2) && !IsNear(x, y, world.ExitPosition, 2) && HasSolidNeighbour(world, x, y) && StableCell(world.Seed, x, y, 3220) % 17u == 0u)
                 {
                     categoryId = VisualCategoryIds.CaveGroundDetails;
                     stage = 2;
@@ -388,7 +392,7 @@ namespace Llm2Pcg.Visuals
                 {
                     CityStructurePlacement structure = structures[index];
                     float x = structure.Footprint.X + (structure.Footprint.Width - 1) * .5f;
-                    float y = world.GetSurfaceHeight(structure.Center.X, structure.Center.Y);
+                    float y = CitySurfaceMeshBuilder.SidewalkHeight;
                     float z = structure.Footprint.Y + (structure.Footprint.Height - 1) * .5f;
                     Vector3 targetSize = new Vector3(structure.Footprint.Width * .9f, structure.Height, structure.Footprint.Height * .9f);
                     if (VisualVariantResolver.TryResolve(profile, CityStructureExtractor.Category(structure.StructureClass), world.Seed, structure.Center.X, structure.Center.Y, index, new Vector3(x, y, z), Quaternion.identity, targetSize, out ResolvedVisualPlacement placement)) result.Add(placement);
@@ -396,12 +400,33 @@ namespace Llm2Pcg.Visuals
             }
 
             int semantic = structures == null ? 0 : structures.Count;
+            bool district = profile.FindCategory(VisualCategoryIds.CityTrees) != null;
+            int decorations = 0;
             for (int y = 0; y < world.Height; y++)
             for (int x = 0; x < world.Width; x++)
             {
                 int tileIndex = y * world.Width + x;
                 BiomeTile tile = world.Tiles[tileIndex];
                 string categoryId = null;
+                if (district)
+                {
+                    if (decorations >= 768 || IsNear(x, y, world.StartPosition, 3) || IsNear(x, y, world.ExitPosition, 3)) continue;
+                    // A regular planting rhythm reads as designed streets, while the world seed still selects the buildings.
+                    // A one-cell free neighbourhood keeps planters out of building footprints and narrow alleys.
+                    if (tile == BiomeTile.Park && x % 4 == 2 && y % 4 == 2 && ClearCityPlanting(world, x, y, true))
+                        categoryId = VisualCategoryIds.CityTrees;
+                    else if (tile == BiomeTile.Ground && x % 6 == 1 && y % 6 == 1 && ClearCityPlanting(world, x, y, false))
+                        categoryId = VisualCategoryIds.CityTrees;
+                    else if (tile == BiomeTile.Ground && HasRoadNeighbour(world, x, y) && (x + y) % 7 == 0)
+                        categoryId = VisualCategoryIds.CityStreetProps;
+                    else if (tile == BiomeTile.Park && x % 4 == 0 && y % 4 == 0 && ClearCityPlanting(world, x, y, true))
+                        categoryId = VisualCategoryIds.CityParkProps;
+                    if (categoryId != null && VisualVariantResolver.TryResolve(profile, categoryId, world.Seed, x, y, tileIndex,
+                        new Vector3(x, CitySurfaceMeshBuilder.HeightFor(tile), y), CityPropRotation(world, x, y),
+                        Vector3.one * (categoryId == VisualCategoryIds.CityTrees ? 1.05f : .8f), out var districtProp))
+                    { result.Add(districtProp); decorations++; }
+                    continue;
+                }
                 if (tile == BiomeTile.Park && !IsNear(x, y, world.StartPosition, 2) && !IsNear(x, y, world.ExitPosition, 2) && StableCell(world.Seed, x, y, 3310) % 41u == 0u)
                     categoryId = VisualCategoryIds.CityParkProps;
                 else if (tile == BiomeTile.Ground && HasRoadNeighbour(world, x, y) && StableCell(world.Seed, x, y, 3320) % 127u == 0u)
@@ -410,6 +435,41 @@ namespace Llm2Pcg.Visuals
                 { result.Add(decoration); semantic++; }
             }
             return result;
+        }
+
+        private static bool ClearCityPlanting(BiomeWorldData world, int x, int y, bool park)
+        {
+            for (int dy = -1; dy <= 1; dy++)
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                if (!world.IsInBounds(x + dx, y + dy)) return false;
+                var tile = world.Tiles[(y + dy) * world.Width + x + dx];
+                if (tile == BiomeTile.Building || tile == BiomeTile.Road || (park && tile != BiomeTile.Park)) return false;
+            }
+            return true;
+        }
+
+        private static Quaternion CityPropRotation(BiomeWorldData world, int x, int y)
+        {
+            // Authored lamp heads face -Z; turn them towards the adjacent road.
+            if (IsTile(world, x + 1, y, BiomeTile.Road)) return Quaternion.Euler(0, -90, 0);
+            if (IsTile(world, x - 1, y, BiomeTile.Road)) return Quaternion.Euler(0, 90, 0);
+            if (IsTile(world, x, y + 1, BiomeTile.Road)) return Quaternion.Euler(0, 180, 0);
+            return Quaternion.identity;
+        }
+
+        public static List<ForestTreeCollision> BuildCityPropCollisions(BiomeWorldData world, BiomeVisualProfile profile)
+        {
+            var collisions = new List<ForestTreeCollision>();
+            // Match the full layout's semantic indices, including legacy catalogs.
+            foreach (var prop in BuildCityVisuals(world, profile, CityStructureExtractor.Extract(world)))
+            {
+                if (prop.CategoryId.StartsWith("City/Buildings/", StringComparison.Ordinal)) continue;
+                Vector3 p = prop.WorldMatrix.GetColumn(3);
+                Vector3 scale = prop.WorldMatrix.lossyScale;
+                collisions.Add(new ForestTreeCollision(p.x, p.z, prop.Variant.EffectiveCollisionRadius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z))));
+            }
+            return collisions;
         }
 
         public static string DungeonCategory(DungeonPropType type)

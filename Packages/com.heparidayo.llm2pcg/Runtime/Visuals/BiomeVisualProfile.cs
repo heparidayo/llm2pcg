@@ -144,6 +144,7 @@ namespace Llm2Pcg.Visuals
         public const string CityMidRise = "City/Buildings/MidRise";
         public const string CityHighRise = "City/Buildings/HighRise";
         public const string CityParkProps = "City/ParkProps";
+        public const string CityTrees = "City/Trees";
         public const string CityStreetProps = "City/StreetProps";
     }
 }

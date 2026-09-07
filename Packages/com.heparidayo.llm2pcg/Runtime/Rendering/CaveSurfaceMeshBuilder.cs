@@ -51,6 +51,7 @@ namespace Llm2Pcg.Rendering
         public const int RockSubmesh = 1;
         public const int WallSubmesh = 2;
         public const float UvWorldScale = 1f / 5f;
+        public const int WallBandCount = 5;
         private const int FloorHeightStage = 3600;
         private const int RockHeightStage = 3610;
         private const int GridJitterStageX = 3620;
@@ -81,6 +82,20 @@ namespace Llm2Pcg.Rendering
                 int layerOffset = solid ? gridVertexCount : 0;
                 List<int> target = triangles[solid ? RockSubmesh : FloorSubmesh];
                 AddCellTop(target, gridWidth, layerOffset, x, y);
+            }
+
+            // Split cap triangles for deliberate low-poly facets, without altering positions.
+            List<int> cap = triangles[RockSubmesh];
+            for (int i = 0; i < cap.Count; i += 3)
+            {
+                Vector3 a = vertices[cap[i]], b = vertices[cap[i + 1]], c = vertices[cap[i + 2]];
+                Vector3 normal = Vector3.Cross(b - a, c - a).normalized;
+                for (int j = 0; j < 3; j++)
+                {
+                    int source = cap[i + j];
+                    cap[i + j] = vertices.Count;
+                    vertices.Add(vertices[source]); normals.Add(normal); uvs.Add(uvs[source]);
+                }
             }
 
             int boundaryEdgeCount = 0;
@@ -189,15 +204,42 @@ namespace Llm2Pcg.Rendering
             Vector3 baseB = new Vector3(b.x, SampleLayerHeight(world, bx, by, false), b.y);
             Vector3 topB = new Vector3(b.x, SampleLayerHeight(world, bx, by, true), b.y);
             Vector3 topA = new Vector3(a.x, SampleLayerHeight(world, ax, ay, true), a.y);
-            Vector3 normal = Vector3.Cross(baseB - baseA, topA - baseA).normalized;
-            int start = vertices.Count;
-            vertices.Add(baseA); vertices.Add(baseB); vertices.Add(topB); vertices.Add(topA);
-            normals.Add(normal); normals.Add(normal); normals.Add(normal); normals.Add(normal);
-            float distance = Vector2.Distance(a, b) * UvWorldScale;
-            uvs.Add(Vector2.zero); uvs.Add(new Vector2(distance, 0f)); uvs.Add(new Vector2(distance, topB.y * UvWorldScale)); uvs.Add(new Vector2(0f, topA.y * UvWorldScale));
-            AddTriangle(triangles, start, start + 1, start + 2);
-            AddTriangle(triangles, start, start + 2, start + 3);
+            // Shared endpoint offsets keep adjacent facets watertight, including corners.
+            // Recess only into rock: the existing floor and navigation boundary stay intact.
+            for (int band = 0; band < WallBandCount; band++)
+            {
+                Vector3 p0 = WallPoint(world, ax, ay, baseA, topA, band);
+                Vector3 p1 = WallPoint(world, bx, by, baseB, topB, band);
+                Vector3 p2 = WallPoint(world, bx, by, baseB, topB, band + 1);
+                Vector3 p3 = WallPoint(world, ax, ay, baseA, topA, band + 1);
+                Vector3 normal = Vector3.Cross(p1 - p0, p3 - p0).normalized;
+                int start = vertices.Count;
+                vertices.Add(p0); vertices.Add(p1); vertices.Add(p2); vertices.Add(p3);
+                for (int i = 0; i < 4; i++) normals.Add(normal);
+                // World-anchored strata instead of restarting the texture every half cell.
+                uvs.Add(WallUv(p0)); uvs.Add(WallUv(p1)); uvs.Add(WallUv(p2)); uvs.Add(WallUv(p3));
+                AddTriangle(triangles, start, start + 1, start + 2);
+                AddTriangle(triangles, start, start + 2, start + 3);
+            }
         }
+
+        private static Vector3 WallPoint(CaveWorldData world, int gx, int gy, Vector3 bottom, Vector3 top, int band)
+        {
+            float t = band / (float)WallBandCount;
+            Vector3 p = Vector3.Lerp(bottom, top, t);
+            if (band == 0 || band == WallBandCount) return p;
+            Vector2 towardSolid = Vector2.zero;
+            for (int y = (gy - 1) / 2; y <= gy / 2; y++)
+            for (int x = (gx - 1) / 2; x <= gx / 2; x++)
+                if (!world.IsWalkable(x, y))
+                    towardSolid += new Vector2(x - (gx * .5f - .5f), y - (gy * .5f - .5f));
+            float depth = Mathf.Sin(t * Mathf.PI) * (.13f + .22f * StableUnit(world.Seed, gx, gy, 3640 + band));
+            towardSolid = towardSolid.normalized * depth;
+            p.x += towardSolid.x; p.z += towardSolid.y;
+            return p;
+        }
+
+        private static Vector2 WallUv(Vector3 p) => new Vector2((p.x + p.z) * UvWorldScale, p.y * UvWorldScale);
 
         private static float SampleLayerSurfaceHeight(CaveWorldData world, float worldX, float worldZ, bool solidLayer)
         {

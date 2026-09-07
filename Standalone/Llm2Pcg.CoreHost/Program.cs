@@ -41,7 +41,7 @@ app.MapPost("/api/world/generate", (PCGRequest request) =>
             return Results.Json(new { ok = false, code = validation.Code, message = validation.Message }, statusCode: StatusCodes.Status400BadRequest);
 
         IPCGWorldData world = PCGGeneratorRegistry.Default.GetRequired(request).Generate(request);
-        GeneratedWorldDocument document = GeneratedWorldDocumentFactory.Create(world);
+        GeneratedWorldDocument document = GeneratedWorldDocumentFactory.Create(world, request);
         return Results.Ok(new { ok = true, world = document });
     }
     catch (ArgumentException exception)
@@ -100,7 +100,8 @@ internal static class CoreHostSelfTest
                 Console.WriteLine("PASS " + worldType + " deterministic hash=" + first.ComputeStableHash());
             }
 
-            Console.WriteLine("Standalone CoreHost self-test: 7/7 passed.");
+            Llm2Pcg.Tests.PcgCoreRegressionChecks.Run();
+            Console.WriteLine("Standalone CoreHost self-test: 7 world baselines and 7 Core regression groups passed.");
             return 0;
         }
         catch (Exception exception)

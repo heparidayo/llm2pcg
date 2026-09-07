@@ -72,6 +72,9 @@ namespace Llm2Pcg.Rendering
             citySurfaceMaterials[CitySurfaceMeshBuilder.ParkSubmesh] = Resources.Load<Material>("PCGSurfaceMaterials/CityPark") ?? materials[GreenBatch];
             citySurfaceMaterials[CitySurfaceMeshBuilder.CurbSubmesh] = Resources.Load<Material>("PCGSurfaceMaterials/CityCurb") ?? materials[GroundBatch];
             citySurfaceMaterials[CitySurfaceMeshBuilder.RoadMarkingSubmesh] = Resources.Load<Material>("PCGSurfaceMaterials/CityRoadMarking") ?? materials[PathBatch];
+            string[] cityMaterialNames = { "CitySidewalk", "CityRoad", "CityPark", "CityCurb", "CityRoadMarking" };
+            for (int i = 0; i < citySurfaceMaterials.Length; i++)
+                citySurfaceMaterials[i] = Resources.Load<Material>("PCGSurfaceMaterials/CanalDistrict/" + cityMaterialNames[i]) ?? citySurfaceMaterials[i];
             CitySurfaceUsesAssetMaterials = true;
             for (int index = 0; index < citySurfaceMaterials.Length; index++) if (citySurfaceMaterials[index] == materials[GroundBatch] || citySurfaceMaterials[index] == materials[RoadBatch] || citySurfaceMaterials[index] == materials[GreenBatch] || citySurfaceMaterials[index] == materials[PathBatch]) CitySurfaceUsesAssetMaterials = false;
         }
@@ -147,6 +150,7 @@ namespace Llm2Pcg.Rendering
                 bool forestCatalogAvailable = VisualVariantResolver.GetSortedValidVariants(profile == null ? null : profile.FindCategory(VisualCategoryIds.ForestTrees)).Count > 0;
                 visualPlacements.AddRange(VisualWorldLayoutBuilder.BuildForestTrees(world, profile, visualSettings));
                 visualPlacements.AddRange(VisualWorldLayoutBuilder.BuildForestDecorations(world, profile, visualSettings));
+                visualPlacements.AddRange(ForestWoodlandDetails.Build(world, profile, visualSettings));
                 if (!forestCatalogAvailable)
                 {
                     for (int i = 0; i < world.Props.Count; i++)
@@ -368,7 +372,11 @@ namespace Llm2Pcg.Rendering
             usesAssets = true;
             for (int i = 0; i < result.Length; i++)
             {
-                result[i] = Resources.Load<Material>("PCGSurfaceMaterials/" + worldType + suffixes[i]);
+                result[i] = worldType == "Desert" || worldType == "Snowfield" || worldType == "Swamp"
+                    ? Resources.Load<Material>("PCGSurfaceMaterials/NatureBiomes/" + worldType + suffixes[i]) : null;
+                result[i] = result[i] ?? Resources.Load<Material>("PCGSurfaceMaterials/" + worldType + suffixes[i]);
+                if (worldType == "Forest")
+                    result[i] = Resources.Load<Material>("PCGSurfaceMaterials/ForestWoodland/" + suffixes[i]) ?? result[i];
                 if (result[i] != null) continue;
                 if (i == ForestSurfaceMeshBuilder.WaterSurfaceSubmesh && waterSurfaceMaterial != null)
                 {
