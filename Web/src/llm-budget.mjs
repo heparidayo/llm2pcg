@@ -1,6 +1,14 @@
 // Conservative reservation is durable BEFORE transmission. An interrupted/unknown call
 // keeps its full reservation; it is never assumed to have cost zero on restart.
-import {readFileSync,writeFileSync,openSync,closeSync,fsyncSync} from 'node:fs';
+import {readFileSync,writeFileSync,openSync,closeSync,fsyncSync,renameSync} from 'node:fs';
+import {randomUUID} from 'node:crypto';
+export function writeBudgetAtomically(path,state,{replace=renameSync}={}) {
+  // Same-directory replacement preserves the previous ledger if writing/syncing fails.
+  // Keep a failed temporary file for recovery; never retry an API call here.
+  const temporary=path+'.'+randomUUID()+'.tmp',fd=openSync(temporary,'wx');
+  try{writeFileSync(fd,JSON.stringify(state,null,2));fsyncSync(fd);}finally{closeSync(fd);}
+  replace(temporary,path);
+}
 export class LlmBudget {
   constructor(path,{limitUsd=1}={}){
     if(!(limitUsd>0&&limitUsd<=1))throw Error('Budget must be within the approved $1 ceiling.');
@@ -8,9 +16,10 @@ export class LlmBudget {
     try{this.state=JSON.parse(readFileSync(path,'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;this.state={limitUsd,entries:[]};}
     if(this.state.limitUsd!==limitUsd)throw Error('Budget ledger limit mismatch.');
   }
-  save(){writeFileSync(this.path,JSON.stringify(this.state,null,2));const fd=openSync(this.path,'r+');try{fsyncSync(fd);}finally{closeSync(fd);}}
+  save(){if(this.fault)throw this.fault;try{writeBudgetAtomically(this.path,this.state);}catch(cause){this.fault=Object.assign(new Error('BUDGET_LEDGER_WRITE_FAILED: no further calls allowed.'),{code:'BUDGET_LEDGER_WRITE_FAILED',cause});throw this.fault;}}
   get reservedUsd(){return this.state.entries.reduce((n,e)=>n+(e.actualUsd??e.reservedUsd),0);}
   reserve(body){
+    if(this.fault)throw this.fault;
     if(this.state.entries.some(e=>e.actualUsd>e.reservedUsd))throw Error('Budget estimate violation: ledger locked.');
     const b=JSON.parse(body);
     if(!['gpt-5.4-mini','gpt-5.4-mini-2026-03-17'].includes(b.model)||b.tools?.length||b.previous_response_id||!Number.isInteger(b.max_output_tokens)||b.max_output_tokens>3500)throw Error('Unpriced request rejected.');

@@ -58,6 +58,25 @@ test("water plants is the waterProps category, not a groundDetails plant exclusi
  const r=resolveIntent(d,{prompt:'A swamp without water, without paths, and without water plants. Seed 390.'});
  const water=r.request.distributionRules.find(r=>r.category==='waterProps');assert.equal(water.amountMode,'Off');assert.equal(water.maxCount,0);assert.ok(water.types.length);
 });
+test('Korean aquatic plant spacing does not become a foreign ground-detail type exclusion',()=>{
+ for(const phrase of ['수생식물','수생 식물','수생  식물','수변 소품']) {
+  const d={...emptyIntent(),worldType:'Swamp',seed:4316,distributionRules:[{category:'waterProps',types:[],amountMode:'Off',amount:null,region:'WholeMap',featureId:null}]};
+  const r=resolveIntent(d,{prompt:phrase+'은 없게'}).request;
+  assert.equal(r.distributionRules.find(r=>r.category==='waterProps').amountMode,'Off');
+  assert.deepEqual(r.distributionRules.find(r=>r.category==='groundDetails'),resolveIntent({...emptyIntent(),worldType:'Swamp',seed:4316}).request.distributionRules.find(r=>r.category==='groundDetails'));
+ }
+});
+test('visual water nouns cannot switch off terrain water, while independent water negation still applies',()=>{
+ for(const prompt of ['수생 식물은 없게','식물은 없게','no water plants','no aquatic plants'])assert.equal(protectSpatialIntent(prompt,emptyIntent()).waterMode,null,prompt);
+ for(const prompt of ['수생 식물과 물은 없게','no water plants and no water'])assert.equal(protectSpatialIntent(prompt,emptyIntent()).waterMode,'None',prompt);
+ const lake={...emptyIntent(),spatialFeatures:[{id:'lake',kind:'Lake',placement:'East',orientation:null,size:'Small',exclusive:true}]};
+ assert.equal(protectSpatialIntent('A lake with no water anywhere outside this lake',lake).waterMode,'Default');
+});
+test('an inactive model route uses the canonical Node defaults without changing direct intent input',async()=>{
+ const draft={...emptyIntent(),route:{mode:'None',orientation:'NorthSouth',widthCells:1,crossingPolicy:'NoCrossing'}};
+ assert.deepEqual(protectSpatialIntent('without roads',draft).route,{mode:'None',orientation:'EastWest',widthCells:3,crossingPolicy:'BridgeIfNeeded'});
+ const direct=await handleV4('/api/v4/resolve',{intent:draft},{seedFactory:()=>1});assert.deepEqual(direct.request.route,draft.route);
+});
 test('water only in a lake is not a global water prohibition; ambiguous lake counts are not exclusive',async()=>{
  const draft={...emptyIntent(),waterMode:'None',spatialFeatures:[{id:'lake',kind:'Lake',placement:'Center',orientation:null,size:'Large',exclusive:false}]};
  for(const prompt of ['Forest. Water only inside that lake, nowhere else.','숲. 물은 그 호수 안에만 있게 해 줘.','A lake is the only water area; no water outside it.','호수 바깥에는 물이 전혀 없게 해 줘.']){

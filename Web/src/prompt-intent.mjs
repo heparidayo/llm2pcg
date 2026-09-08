@@ -13,7 +13,7 @@ const categories = {
     mushroom:["버섯","mushrooms?"], stump:["그루터기","stumps?"], log:["통나무","logs?"],
     branch:["가지","branches"], thorn:["가시덤불","thorns?"]
   }],
-  waterProps: [["수초","수변 소품","수생식물","water props?","water plants?","aquatic plants?"], {
+  waterProps: [["수초","수변\\s*소품","수생\\s*식물","water props?","water plants?","aquatic plants?"], {
     reeds:["갈대","reeds"], lily_pad:["수련","lily pads?"], water_lily:["연꽃","water lil(?:y|ies)"]
   }]
 };

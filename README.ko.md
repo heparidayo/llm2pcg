@@ -46,7 +46,7 @@ LLM2PCG는 JSON 요청을 기반으로 여러 형태의 월드를 생성하는 �
 
 ### 공간 구조·시각 분포 제어 (v4)
 
-128×128, Seed 234로 생성한 실제 Unity 기본 도형 프리뷰입니다. 외부 아트 에셋 없이 실행할 수 있습니다. [갤러리 예제 JSON](Shared/Examples/spatial-v4-gallery.json)에서 원하는 항목의 `request`를 별도 JSON으로 저장한 뒤 `/spatial-v4`에서 불러오면 재현할 수 있습니다.
+128×128, Seed 234로 생성한 실제 Unity 기본 도형 프리뷰입니다. 외부 아트 에셋 없이 실행할 수 있습니다. `/spatial-v4`의 README 갤러리 목록에서 예제를 선택하고 불러온 뒤 Web 3D를 생성하세요. 파일로 재현하려면 [갤러리 예제 JSON](Shared/Examples/spatial-v4-gallery.json)에서 원하는 항목의 `request`만 별도 JSON으로 저장해 불러옵니다. 갤러리 배열 전체를 업로드하는 방식은 아닙니다.
 
 | 중앙 산 | 중앙 호수 외 수면 금지 |
 | --- | --- |
@@ -86,7 +86,7 @@ cd llm2pcg
 pwsh -File ./Scripts/Test-Clone.ps1
 ```
 
-검증 스크립트는 lockfile에 고정된 Web 의존성을 설치하고, .NET host 빌드, 결정론적 CoreHost 검사, Web 테스트와 일곱 월드 브라우저/API smoke test를 실행합니다.
+검증 스크립트는 lockfile에 고정된 Web 의존성을 설치하고 Web/MCP 테스트, .NET host 빌드, 결정론적 재생성 검사, 기존 일곱 월드와 v4 갤러리 여덟 예제의 API smoke test를 실행합니다. 공개본에 포함되지 않은 개발 전용 fixture 검사는 명시적으로 건너뜁니다.
 
 ## 브라우저 데모 실행
 
@@ -99,6 +99,12 @@ pwsh -File ./Scripts/Start-StandaloneWeb.ps1
 공간 제어는 `http://127.0.0.1:3000/spatial-v4`에서 예제 초안을 확정한 뒤 Web 3D 생성 버튼으로 확인합니다. 최종 JSON을 저장하면 해석 없이 재현할 수 있고, ‘새 Seed로 변형’은 LLM 호출 없이 Seed만 바꿉니다. 같은 요청 ID의 재전송은 현재 서버 프로세스 안에서 중복 처리하지 않으며, 재시작 이후 재현에는 저장 JSON이 필요합니다.
 
 선택적인 자연어 요청 변환 기능을 사용하려면 `Web/.env.example`을 `Web/.env`로 복사하고 본인의 server-side key를 입력하세요. 이 파일은 절대 commit하지 마세요.
+
+## MCP 사용
+
+Standalone 서버를 실행한 뒤 MCP 클라이언트가 `node`와 `MCP/src/server.mjs`의 절대 경로를 인자로 사용하도록 설정합니다. 이 stdio 서버에는 추가 의존성이나 API key가 필요하지 않습니다. `generate_world_v4` 도구에 `{ "request": <확정된 v4 JSON> }`을 전달하면 CoreHost의 월드 데이터를 반환합니다. Unity 씬을 렌더하는 도구는 아닙니다. Core 포트를 변경했다면 `PCG_V4_CORE_ENDPOINT`로 기본 주소 `http://127.0.0.1:8090/api/v4/world/generate`를 바꿉니다.
+
+기존 `generate_world` / `generate_dungeon` 도구는 Unity에서 명시적으로 켠 Bridge `http://127.0.0.1:8088/pcg/generate`로 전송합니다. 주소는 `UNITY_PCG_ENDPOINT`로 변경할 수 있습니다. 로컬 Bridge를 신뢰할 수 없는 네트워크에 노출하지 마세요.
 
 ## Unity 데모 실행
 
@@ -129,6 +135,7 @@ https://github.com/heparidayo/llm2pcg.git?path=/Packages/com.heparidayo.llm2pcg#
 - `UnityDemo`: 외부 에셋 없는 Unity 데모 프로젝트
 - `Standalone`: Unity 없이 생성 가능한 .NET 8 host
 - `Web`: Three.js 브라우저 렌더러와 선택적 prompt adapter
+- `MCP`: 검증된 확정 요청을 전달하는 stdio 도구
 - `Shared`: version이 명시된 JSON Schema와 JavaScript validator/default
 - `Scripts`: clone 검증과 로컬 실행 스크립트
 

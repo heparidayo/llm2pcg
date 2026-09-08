@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {mkdtempSync,rmSync} from 'node:fs';import {tmpdir} from 'node:os';import {join} from 'node:path';import {LlmBudget} from './llm-budget.mjs';
+import {mkdtempSync,rmSync,readFileSync,mkdirSync} from 'node:fs';import {tmpdir} from 'node:os';import {join} from 'node:path';import {LlmBudget,writeBudgetAtomically} from './llm-budget.mjs';
 test('paid evaluator reserves before calls, persists unknown spend and rejects unpriced/overbudget calls',t=>{
  const dir=mkdtempSync(join(tmpdir(),'llm2pcg-budget-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));const path=join(dir,'ledger.json');
  const b=new LlmBudget(path,{limitUsd:.05}),body=JSON.stringify({model:'gpt-5.4-mini',max_output_tokens:3500});
@@ -7,4 +7,13 @@ test('paid evaluator reserves before calls, persists unknown spend and rejects u
  assert.throws(()=>b.reserve(body),/EXHAUSTED/);assert.throws(()=>b.reserve(JSON.stringify({model:'unknown'})),/Unpriced/);
  b.settle(e,{input_tokens:1000,output_tokens:500,input_tokens_details:{cached_tokens:100}});assert.equal(b.reservedUsd,.0029325);
  assert.throws(()=>b.settle(e,{}),/Unknown/);
+});
+test('failed atomic ledger replacement preserves the previous durable reservation',t=>{
+ const dir=mkdtempSync(join(tmpdir(),'llm2pcg-budget-atomic-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));const path=join(dir,'ledger.json');
+ const b=new LlmBudget(path),body=JSON.stringify({model:'gpt-5.4-mini',max_output_tokens:3500});b.reserve(body);
+ const before=readFileSync(path,'utf8');assert.throws(()=>writeBudgetAtomically(path,{...b.state,entries:[]},{replace:()=>{throw Error('simulated replacement failure');}}),/simulated/);
+ assert.equal(readFileSync(path,'utf8'),before);
+ const blocked=join(dir,'directory-not-ledger');mkdirSync(blocked);b.path=blocked;
+ assert.throws(()=>b.save(),{code:'BUDGET_LEDGER_WRITE_FAILED'});b.path=path;
+ assert.throws(()=>b.reserve(body),{code:'BUDGET_LEDGER_WRITE_FAILED'});assert.equal(readFileSync(path,'utf8'),before);
 });

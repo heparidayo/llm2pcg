@@ -48,7 +48,7 @@ Seed / size: woodland 234 / 96×96; cherry forest 234 / 64×64; desert 311 / 96�
 
 ### Spatial and visual control (v4)
 
-Actual primitive-profile Unity captures: 128×128, Seed 234. No external art assets are required. Download a resolved request from [the gallery examples](Shared/Examples/spatial-v4-gallery.json) and load it at `/spatial-v4` to replay it.
+Actual primitive-profile Unity captures: 128×128, Seed 234. No external art assets are required. At `/spatial-v4`, select a README gallery example, load it and generate Web 3D. For file-based replay, save one entry's `request` object from [the gallery examples](Shared/Examples/spatial-v4-gallery.json) as JSON; do not upload the whole gallery array.
 
 | Central mountain | Exclusive central lake |
 | --- | --- |
@@ -88,7 +88,7 @@ cd llm2pcg
 pwsh -File ./Scripts/Test-Clone.ps1
 ```
 
-The verification script installs locked Web dependencies, builds the .NET host, runs deterministic CoreHost checks, runs Web tests, and performs a seven-world browser/API smoke test.
+The verification script installs locked Web dependencies, runs Web/MCP tests, builds the .NET host, checks deterministic replays and performs seven-world legacy plus eight-example v4 API smoke tests. Development-only fixture tests are explicitly skipped in this curated checkout.
 
 ## Run the browser demo
 
@@ -101,6 +101,12 @@ Open `http://127.0.0.1:3000`. The default preset/direct generation flow is local
 Open `http://127.0.0.1:3000/spatial-v4` for spatial control. Resolve the example intent, then generate Web 3D. Save the final JSON to replay; “new Seed” changes only the seed without calling the LLM. Same request-ID retries are deduplicated during the current server process; retain the final JSON across restarts.
 
 For optional natural-language request translation, copy `Web/.env.example` to `Web/.env`, add your own server-side key, and never commit that file.
+
+## Use MCP
+
+With the standalone server running, configure an MCP client to launch `node` with an absolute path to `MCP/src/server.mjs`. This stdio server has no additional dependencies or API-key requirement. The `generate_world_v4` tool accepts `{ "request": <resolved v4 JSON> }` and returns CoreHost world data; it does not render a Unity scene. `PCG_V4_CORE_ENDPOINT` overrides its default `http://127.0.0.1:8090/api/v4/world/generate` when using a custom Core port.
+
+The legacy `generate_world` / `generate_dungeon` tools instead target Unity's opt-in bridge at `http://127.0.0.1:8088/pcg/generate` (`UNITY_PCG_ENDPOINT` override). Never expose either local bridge to an untrusted network.
 
 ## Run the Unity demo
 
@@ -131,6 +137,7 @@ Until then, add `Packages/com.heparidayo.llm2pcg` from the clone as a local pack
 - `UnityDemo`: primitive-only Unity demonstration project
 - `Standalone`: .NET 8 host for Unity-independent generation
 - `Web`: Three.js browser renderer and optional prompt adapter
+- `MCP`: stdio tools for validated, resolved requests
 - `Shared`: versioned JSON Schema and JavaScript validation/defaults
 - `Scripts`: clone verification and local launcher
 

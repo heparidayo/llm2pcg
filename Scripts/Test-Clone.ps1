@@ -20,6 +20,9 @@ try {
 }
 finally { Pop-Location }
 
+& $npmCommand.Source --prefix (Join-Path $projectRoot 'MCP') test
+if ($LASTEXITCODE -ne 0) { throw "MCP tests failed with exit code $LASTEXITCODE." }
+
 & $dotnetCommand.Source build $coreProject
 if ($LASTEXITCODE -ne 0) { throw "CoreHost build failed with exit code $LASTEXITCODE." }
 
@@ -32,4 +35,4 @@ if ($LASTEXITCODE -ne 0) { throw "v4 gallery replay checks failed with exit code
 & (Join-Path $PSScriptRoot 'Start-StandaloneWeb.ps1') -WebPort 43100 -CorePort 43101 -ValidateOnly
 if ($LASTEXITCODE -ne 0) { throw "End-to-end smoke test failed with exit code $LASTEXITCODE." }
 
-Write-Host 'Clone verification passed: Web tests, CoreHost build/self-test, and seven-world end-to-end smoke test.' -ForegroundColor Green
+Write-Host 'Clone verification passed: Web/MCP tests, CoreHost build/self-test, seven legacy worlds and eight v4 gallery replays.' -ForegroundColor Green
