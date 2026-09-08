@@ -32,6 +32,7 @@ if (-not (Test-Path -LiteralPath $threeModule)) {
 $previousWebPort = $env:WEB_PORT
 $previousCoreUrl = $env:LLM2PCG_CORE_URL
 $previousCoreEndpoint = $env:PCG_CORE_ENDPOINT
+$previousV4Endpoint = $env:PCG_V4_CORE_ENDPOINT
 $coreProcess = $null
 $webProcess = $null
 
@@ -63,6 +64,7 @@ try {
     $env:WEB_PORT = $WebPort.ToString()
     $env:LLM2PCG_CORE_URL = "http://127.0.0.1:$CorePort"
     $env:PCG_CORE_ENDPOINT = "http://127.0.0.1:$CorePort/api/world/generate"
+    $env:PCG_V4_CORE_ENDPOINT = "http://127.0.0.1:$CorePort/api/v4/world/generate"
 
     $coreProcess = Start-Process -FilePath $dotnetCommand.Source `
         -ArgumentList @('run', '--project', $coreProject, '--no-launch-profile') `
@@ -107,6 +109,13 @@ try {
             }
             Write-Host ("PASS {0,-9} hash={1} cells={2}" -f $result.world.worldType, $result.world.worldHash, $decodedCells.Length)
         }
+        $gallery = Invoke-RestMethod -Uri "http://127.0.0.1:$WebPort/api/v4/examples"
+        foreach ($example in $gallery.examples) {
+            $body = @{ request = $example.request } | ConvertTo-Json -Depth 20 -Compress
+            $v4 = Invoke-RestMethod -Uri "http://127.0.0.1:$WebPort/api/v4/generate-direct" -Method Post -ContentType 'application/json' -Body $body
+            if (-not $v4.ok -or $v4.world.formatVersion -ne 2 -or $v4.world.seed -ne $example.request.seed) { throw "v4 API replay failed: $($example.id)" }
+            Write-Host "PASS v4 API $($example.id)"
+        }
         Write-Host 'Standalone Web end-to-end validation passed.' -ForegroundColor Green
         return
     }
@@ -125,4 +134,5 @@ finally {
     Restore-EnvironmentValue -Name 'WEB_PORT' -Value $previousWebPort
     Restore-EnvironmentValue -Name 'LLM2PCG_CORE_URL' -Value $previousCoreUrl
     Restore-EnvironmentValue -Name 'PCG_CORE_ENDPOINT' -Value $previousCoreEndpoint
+    Restore-EnvironmentValue -Name 'PCG_V4_CORE_ENDPOINT' -Value $previousV4Endpoint
 }

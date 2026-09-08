@@ -1,4 +1,7 @@
 import { createServer } from "node:http";
+import { handleV4 } from "./spatial-v4-api.mjs";
+import { createResolveCache } from "./resolve-cache.mjs";
+import { parseStrictJson } from "../../Shared/strict-json.mjs";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -304,7 +307,12 @@ export async function sendUnitySnapshotCommand(command, fetchImplementation = fe
   return { status: response.status, payload };
 }
 
-async function readJsonBody(request) {
+async function readJsonBody(request, strict = false) {
+  if(strict) {
+    const chunks=[];let bytes=0;
+    for await(const chunk of request){bytes+=chunk.length;if(bytes>65536)throw new Error("Request body too large");chunks.push(chunk);}
+    return parseStrictJson(new TextDecoder("utf-8",{fatal:true}).decode(Buffer.concat(chunks)));
+  }
   let body = "";
   for await (const chunk of request) {
     body += chunk;
@@ -346,11 +354,29 @@ function safeStaticPath(root, prefix, requestUrl, extension) {
   return resolved.startsWith(`${path.resolve(root)}${path.sep}`) ? resolved : null;
 }
 
-export function createWebServer({ requestPcg = requestPcgFromOpenAi, sendRequestToCore = sendToCore, sendRequestToUnity = sendToUnity, sendCommandToUnity = sendUnitySnapshotCommand, readHealth = readCoreHealth } = {}) {
+export function createWebServer({ requestPcg = requestPcgFromOpenAi, sendRequestToCore = sendToCore, sendRequestToUnity = sendToUnity, sendCommandToUnity = sendUnitySnapshotCommand, readHealth = readCoreHealth, v4Options = {} } = {}) {
+  v4Options={resolveCache:createResolveCache(),...v4Options};
   return createServer(async (request, response) => {
     try {
       const pathname = new URL(request.url ?? "/", "http://127.0.0.1").pathname;
+      if (pathname.startsWith("/api/v4/")) {
+        try {
+          if (request.method === "GET" && ["/api/v4/capabilities","/api/v4/unity-status","/api/v4/examples"].includes(pathname)) return sendJson(response,200,await handleV4(pathname,null,v4Options));
+          if (request.method !== "POST" || !["/api/v4/resolve","/api/v4/new-seed","/api/v4/generate-direct","/api/v4/generate-unity"].includes(pathname)) return sendJson(response,404,{ok:false,code:"NOT_FOUND"});
+          // v4 browser writes must come through our same-origin JSON UI, not a cross-site form.
+          if (!["127.0.0.1","localhost"].includes(new URL(`http://${request.headers.host}`).hostname)) return sendJson(response,403,{ok:false,code:"HOST_NOT_ALLOWED"});
+          if (request.headers.origin && request.headers.origin !== `http://${request.headers.host}`) return sendJson(response,403,{ok:false,code:"ORIGIN_NOT_ALLOWED"});
+          if (!(request.headers["content-type"]??"").toLowerCase().startsWith("application/json")) return sendJson(response,415,{ok:false,code:"JSON_REQUIRED"});
+          let body;
+          try { body=await readJsonBody(request,true); } catch { return sendJson(response,400,{ok:false,code:"INVALID_JSON_BODY"}); }
+          return sendJson(response,200,await handleV4(pathname,body,v4Options));
+        } catch (error) { return sendJson(response,error.status??502,{ok:false,code:error.code??"V4_PIPELINE_FAILED",message:error.message}); }
+      }
       if (request.method === "GET" && pathname === "/") return sendStatic(response, path.join(publicDirectory, "index.html"), "text/html; charset=utf-8");
+      if (request.method === "GET" && pathname === "/spatial-v4") return sendStatic(response,path.join(publicDirectory,"spatial-v4.html"),"text/html; charset=utf-8");
+      if (request.method === "GET" && pathname === "/spatial-v4.js") return sendStatic(response,path.join(publicDirectory,"spatial-v4.js"),"text/javascript; charset=utf-8");
+      if (request.method === "GET" && ["/spatial-v4-world.mjs","/spatial-v4-renderer.mjs"].includes(pathname)) return sendStatic(response,path.join(publicDirectory,pathname.slice(1)),"text/javascript; charset=utf-8");
+      if (request.method === "GET" && pathname === "/strict-json.mjs") return sendStatic(response,path.join(sharedDirectory,"strict-json.mjs"),"text/javascript; charset=utf-8");
       if (request.method === "GET" && (pathname === "/unity" || pathname === "/unity/")) return sendStatic(response, path.join(unityPublicDirectory, "index.html"), "text/html; charset=utf-8");
       if (request.method === "GET" && pathname === "/unity/app.js") return sendStatic(response, path.join(unityPublicDirectory, "app.js"), "text/javascript; charset=utf-8");
       if (request.method === "GET" && pathname === "/unity/styles.css") return sendStatic(response, path.join(unityPublicDirectory, "styles.css"), "text/css; charset=utf-8");

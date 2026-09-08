@@ -26,6 +26,9 @@ if ($LASTEXITCODE -ne 0) { throw "CoreHost build failed with exit code $LASTEXIT
 & $dotnetCommand.Source run --project $coreProject --no-build -- --self-test
 if ($LASTEXITCODE -ne 0) { throw "CoreHost self-test failed with exit code $LASTEXITCODE." }
 
+& node (Join-Path $PSScriptRoot 'Test-SpatialV4.mjs')
+if ($LASTEXITCODE -ne 0) { throw "v4 gallery replay checks failed with exit code $LASTEXITCODE." }
+
 & (Join-Path $PSScriptRoot 'Start-StandaloneWeb.ps1') -WebPort 43100 -CorePort 43101 -ValidateOnly
 if ($LASTEXITCODE -ne 0) { throw "End-to-end smoke test failed with exit code $LASTEXITCODE." }
 

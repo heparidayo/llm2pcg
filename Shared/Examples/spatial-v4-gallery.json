@@ -1,0 +1,901 @@
+[
+  {
+    "id": "v4-desert-exclusive-lake-234-128",
+    "request": {
+      "schemaVersion": 4,
+      "seed": 234,
+      "mapWidth": 128,
+      "mapHeight": 128,
+      "generatorVersion": "desert-biome@2",
+      "resolverVersion": "pcg-resolver@1",
+      "catalogVersion": "semantic-forest@1",
+      "worldType": "Desert",
+      "waterMode": "Default",
+      "terrain": {
+        "heightUnits": 40,
+        "noiseScale": 40,
+        "octaves": 4,
+        "waterLevelUnits": 0
+      },
+      "spatialFeatures": [
+        {
+          "id": "feature",
+          "kind": "Lake",
+          "placement": "Center",
+          "orientation": "None",
+          "radiusCells": 30,
+          "widthCells": 0,
+          "heightUnits": 0,
+          "exclusive": true
+        }
+      ],
+      "route": {
+        "mode": "None",
+        "orientation": "EastWest",
+        "crossingPolicy": "BridgeIfNeeded",
+        "widthCells": 3
+      },
+      "distributionRules": [
+        {
+          "category": "trees",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "dead_tree"
+          ],
+          "densityPermille": 100,
+          "maxCount": 600,
+          "minDistanceCells": 4,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "rocks",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "rock"
+          ],
+          "densityPermille": 350,
+          "maxCount": 128,
+          "minDistanceCells": 4,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "bushes",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "bush"
+          ],
+          "densityPermille": 35,
+          "maxCount": 160,
+          "minDistanceCells": 3,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "groundDetails",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "grass",
+            "flower"
+          ],
+          "densityPermille": 70,
+          "maxCount": 400,
+          "minDistanceCells": 2,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "waterProps",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "reeds",
+            "lily_pad"
+          ],
+          "densityPermille": 70,
+          "maxCount": 128,
+          "minDistanceCells": 2,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "v4-forest-exclusive-lake-234-128",
+    "request": {
+      "schemaVersion": 4,
+      "seed": 234,
+      "mapWidth": 128,
+      "mapHeight": 128,
+      "generatorVersion": "forest-biome@2",
+      "resolverVersion": "pcg-resolver@1",
+      "catalogVersion": "semantic-forest@1",
+      "worldType": "Forest",
+      "waterMode": "Default",
+      "terrain": {
+        "heightUnits": 24,
+        "noiseScale": 24,
+        "octaves": 4,
+        "waterLevelUnits": 0
+      },
+      "spatialFeatures": [
+        {
+          "id": "feature",
+          "kind": "Lake",
+          "placement": "Center",
+          "orientation": "None",
+          "radiusCells": 30,
+          "widthCells": 0,
+          "heightUnits": 0,
+          "exclusive": true
+        }
+      ],
+      "route": {
+        "mode": "None",
+        "orientation": "EastWest",
+        "crossingPolicy": "BridgeIfNeeded",
+        "widthCells": 3
+      },
+      "distributionRules": [
+        {
+          "category": "trees",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "broadleaf",
+            "conifer"
+          ],
+          "densityPermille": 1000,
+          "maxCount": 600,
+          "minDistanceCells": 4,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "rocks",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "rock"
+          ],
+          "densityPermille": 25,
+          "maxCount": 128,
+          "minDistanceCells": 4,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "bushes",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "bush"
+          ],
+          "densityPermille": 35,
+          "maxCount": 160,
+          "minDistanceCells": 3,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "groundDetails",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "grass",
+            "flower"
+          ],
+          "densityPermille": 70,
+          "maxCount": 400,
+          "minDistanceCells": 2,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "waterProps",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "reeds",
+            "lily_pad"
+          ],
+          "densityPermille": 70,
+          "maxCount": 128,
+          "minDistanceCells": 2,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "v4-forest-mountain-234-128",
+    "request": {
+      "schemaVersion": 4,
+      "seed": 234,
+      "mapWidth": 128,
+      "mapHeight": 128,
+      "generatorVersion": "forest-biome@2",
+      "resolverVersion": "pcg-resolver@1",
+      "catalogVersion": "semantic-forest@1",
+      "worldType": "Forest",
+      "waterMode": "Default",
+      "terrain": {
+        "heightUnits": 24,
+        "noiseScale": 24,
+        "octaves": 4,
+        "waterLevelUnits": 0
+      },
+      "spatialFeatures": [
+        {
+          "id": "feature",
+          "kind": "Mountain",
+          "placement": "Center",
+          "orientation": "None",
+          "radiusCells": 30,
+          "widthCells": 0,
+          "heightUnits": 32,
+          "exclusive": false
+        }
+      ],
+      "route": {
+        "mode": "None",
+        "orientation": "EastWest",
+        "crossingPolicy": "BridgeIfNeeded",
+        "widthCells": 3
+      },
+      "distributionRules": [
+        {
+          "category": "trees",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "broadleaf",
+            "conifer"
+          ],
+          "densityPermille": 1000,
+          "maxCount": 600,
+          "minDistanceCells": 4,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "rocks",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "rock"
+          ],
+          "densityPermille": 25,
+          "maxCount": 128,
+          "minDistanceCells": 4,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "bushes",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "bush"
+          ],
+          "densityPermille": 35,
+          "maxCount": 160,
+          "minDistanceCells": 3,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "groundDetails",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "grass",
+            "flower"
+          ],
+          "densityPermille": 70,
+          "maxCount": 400,
+          "minDistanceCells": 2,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "waterProps",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "reeds",
+            "lily_pad"
+          ],
+          "densityPermille": 70,
+          "maxCount": 128,
+          "minDistanceCells": 2,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "v4-forest-river-bridge-234-128",
+    "request": {
+      "schemaVersion": 4,
+      "seed": 234,
+      "mapWidth": 128,
+      "mapHeight": 128,
+      "generatorVersion": "forest-biome@2",
+      "resolverVersion": "pcg-resolver@1",
+      "catalogVersion": "semantic-forest@1",
+      "worldType": "Forest",
+      "waterMode": "Default",
+      "terrain": {
+        "heightUnits": 24,
+        "noiseScale": 24,
+        "octaves": 4,
+        "waterLevelUnits": 0
+      },
+      "spatialFeatures": [
+        {
+          "id": "feature",
+          "kind": "River",
+          "placement": "CenterCrossing",
+          "orientation": "NorthSouth",
+          "radiusCells": 0,
+          "widthCells": 9,
+          "heightUnits": 0,
+          "exclusive": false
+        }
+      ],
+      "route": {
+        "mode": "StraightCrossing",
+        "orientation": "EastWest",
+        "crossingPolicy": "BridgeIfNeeded",
+        "widthCells": 3
+      },
+      "distributionRules": [
+        {
+          "category": "trees",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "broadleaf",
+            "conifer"
+          ],
+          "densityPermille": 1000,
+          "maxCount": 600,
+          "minDistanceCells": 4,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "rocks",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "rock"
+          ],
+          "densityPermille": 25,
+          "maxCount": 128,
+          "minDistanceCells": 4,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "bushes",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "bush"
+          ],
+          "densityPermille": 35,
+          "maxCount": 160,
+          "minDistanceCells": 3,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "groundDetails",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "grass",
+            "flower"
+          ],
+          "densityPermille": 70,
+          "maxCount": 400,
+          "minDistanceCells": 2,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "waterProps",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "reeds",
+            "lily_pad"
+          ],
+          "densityPermille": 70,
+          "maxCount": 128,
+          "minDistanceCells": 2,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "v4-riverbank-cherry-234-128",
+    "request": {
+      "schemaVersion": 4,
+      "seed": 234,
+      "mapWidth": 128,
+      "mapHeight": 128,
+      "generatorVersion": "forest-biome@2",
+      "resolverVersion": "pcg-resolver@1",
+      "catalogVersion": "semantic-forest@1",
+      "worldType": "Forest",
+      "waterMode": "Default",
+      "terrain": {
+        "heightUnits": 24,
+        "noiseScale": 24,
+        "octaves": 4,
+        "waterLevelUnits": 0
+      },
+      "spatialFeatures": [
+        {
+          "id": "feature",
+          "kind": "River",
+          "placement": "CenterCrossing",
+          "orientation": "NorthSouth",
+          "radiusCells": 0,
+          "widthCells": 9,
+          "heightUnits": 0,
+          "exclusive": false
+        }
+      ],
+      "route": {
+        "mode": "None",
+        "orientation": "EastWest",
+        "crossingPolicy": "BridgeIfNeeded",
+        "widthCells": 3
+      },
+      "distributionRules": [
+        {
+          "category": "trees",
+          "amountMode": "RelativeDensity",
+          "region": "NearFeature",
+          "featureId": "feature",
+          "types": [
+            "cherry_blossom"
+          ],
+          "densityPermille": 1000,
+          "maxCount": 600,
+          "minDistanceCells": 4,
+          "minDistanceToFeature": 1,
+          "maxDistanceToFeature": 10
+        },
+        {
+          "category": "rocks",
+          "amountMode": "Off",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "rock"
+          ],
+          "densityPermille": 0,
+          "maxCount": 0,
+          "minDistanceCells": 4,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "bushes",
+          "amountMode": "Off",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "bush"
+          ],
+          "densityPermille": 0,
+          "maxCount": 0,
+          "minDistanceCells": 3,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "groundDetails",
+          "amountMode": "Off",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "grass",
+            "flower"
+          ],
+          "densityPermille": 0,
+          "maxCount": 0,
+          "minDistanceCells": 2,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "waterProps",
+          "amountMode": "Off",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "reeds",
+            "lily_pad"
+          ],
+          "densityPermille": 0,
+          "maxCount": 0,
+          "minDistanceCells": 2,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "v4-snowfield-mountain-234-128",
+    "request": {
+      "schemaVersion": 4,
+      "seed": 234,
+      "mapWidth": 128,
+      "mapHeight": 128,
+      "generatorVersion": "snowfield-biome@2",
+      "resolverVersion": "pcg-resolver@1",
+      "catalogVersion": "semantic-forest@1",
+      "worldType": "Snowfield",
+      "waterMode": "Default",
+      "terrain": {
+        "heightUnits": 24,
+        "noiseScale": 24,
+        "octaves": 4,
+        "waterLevelUnits": 0
+      },
+      "spatialFeatures": [
+        {
+          "id": "feature",
+          "kind": "Mountain",
+          "placement": "Center",
+          "orientation": "None",
+          "radiusCells": 30,
+          "widthCells": 0,
+          "heightUnits": 32,
+          "exclusive": false
+        }
+      ],
+      "route": {
+        "mode": "None",
+        "orientation": "EastWest",
+        "crossingPolicy": "BridgeIfNeeded",
+        "widthCells": 3
+      },
+      "distributionRules": [
+        {
+          "category": "trees",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "conifer"
+          ],
+          "densityPermille": 750,
+          "maxCount": 600,
+          "minDistanceCells": 4,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "rocks",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "rock"
+          ],
+          "densityPermille": 350,
+          "maxCount": 128,
+          "minDistanceCells": 4,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "bushes",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "bush"
+          ],
+          "densityPermille": 35,
+          "maxCount": 160,
+          "minDistanceCells": 3,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "groundDetails",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "grass",
+            "flower"
+          ],
+          "densityPermille": 70,
+          "maxCount": 400,
+          "minDistanceCells": 2,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "waterProps",
+          "amountMode": "Off",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "reeds",
+            "lily_pad"
+          ],
+          "densityPermille": 0,
+          "maxCount": 0,
+          "minDistanceCells": 2,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "v4-swamp-river-bridge-234-128",
+    "request": {
+      "schemaVersion": 4,
+      "seed": 234,
+      "mapWidth": 128,
+      "mapHeight": 128,
+      "generatorVersion": "swamp-biome@2",
+      "resolverVersion": "pcg-resolver@1",
+      "catalogVersion": "semantic-forest@1",
+      "worldType": "Swamp",
+      "waterMode": "Default",
+      "terrain": {
+        "heightUnits": 16,
+        "noiseScale": 24,
+        "octaves": 4,
+        "waterLevelUnits": 7
+      },
+      "spatialFeatures": [
+        {
+          "id": "feature",
+          "kind": "River",
+          "placement": "CenterCrossing",
+          "orientation": "NorthSouth",
+          "radiusCells": 0,
+          "widthCells": 9,
+          "heightUnits": 0,
+          "exclusive": false
+        }
+      ],
+      "route": {
+        "mode": "StraightCrossing",
+        "orientation": "EastWest",
+        "crossingPolicy": "BridgeIfNeeded",
+        "widthCells": 3
+      },
+      "distributionRules": [
+        {
+          "category": "trees",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "willow"
+          ],
+          "densityPermille": 650,
+          "maxCount": 600,
+          "minDistanceCells": 4,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "rocks",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "rock"
+          ],
+          "densityPermille": 100,
+          "maxCount": 128,
+          "minDistanceCells": 4,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "bushes",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "bush"
+          ],
+          "densityPermille": 35,
+          "maxCount": 160,
+          "minDistanceCells": 3,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "groundDetails",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "grass",
+            "flower"
+          ],
+          "densityPermille": 70,
+          "maxCount": 400,
+          "minDistanceCells": 2,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "waterProps",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "reeds",
+            "lily_pad"
+          ],
+          "densityPermille": 70,
+          "maxCount": 128,
+          "minDistanceCells": 2,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "v4-wholemap-cherry-234-128",
+    "request": {
+      "schemaVersion": 4,
+      "seed": 234,
+      "mapWidth": 128,
+      "mapHeight": 128,
+      "generatorVersion": "forest-biome@2",
+      "resolverVersion": "pcg-resolver@1",
+      "catalogVersion": "semantic-forest@1",
+      "worldType": "Forest",
+      "waterMode": "Default",
+      "terrain": {
+        "heightUnits": 24,
+        "noiseScale": 24,
+        "octaves": 4,
+        "waterLevelUnits": 0
+      },
+      "spatialFeatures": [
+        {
+          "id": "feature",
+          "kind": "River",
+          "placement": "CenterCrossing",
+          "orientation": "NorthSouth",
+          "radiusCells": 0,
+          "widthCells": 9,
+          "heightUnits": 0,
+          "exclusive": false
+        }
+      ],
+      "route": {
+        "mode": "None",
+        "orientation": "EastWest",
+        "crossingPolicy": "BridgeIfNeeded",
+        "widthCells": 3
+      },
+      "distributionRules": [
+        {
+          "category": "trees",
+          "amountMode": "RelativeDensity",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "cherry_blossom"
+          ],
+          "densityPermille": 1000,
+          "maxCount": 600,
+          "minDistanceCells": 4,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "rocks",
+          "amountMode": "Off",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "rock"
+          ],
+          "densityPermille": 0,
+          "maxCount": 0,
+          "minDistanceCells": 4,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "bushes",
+          "amountMode": "Off",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "bush"
+          ],
+          "densityPermille": 0,
+          "maxCount": 0,
+          "minDistanceCells": 3,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "groundDetails",
+          "amountMode": "Off",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "grass",
+            "flower"
+          ],
+          "densityPermille": 0,
+          "maxCount": 0,
+          "minDistanceCells": 2,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        },
+        {
+          "category": "waterProps",
+          "amountMode": "Off",
+          "region": "WholeMap",
+          "featureId": "",
+          "types": [
+            "reeds",
+            "lily_pad"
+          ],
+          "densityPermille": 0,
+          "maxCount": 0,
+          "minDistanceCells": 2,
+          "minDistanceToFeature": 0,
+          "maxDistanceToFeature": 0
+        }
+      ]
+    }
+  }
+]

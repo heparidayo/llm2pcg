@@ -8,6 +8,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <Compile Include="V4Endpoints.cs" />
+    <Content Include="../../Shared/Schema/pcg-request-v4.schema.json" Link="pcg-request-v4.schema.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../Shared/Capabilities/semantic-forest-v1.json" Link="semantic-forest-v1.json" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="../../Packages/com.heparidayo.llm2pcg/Tests/Editor/PcgCoreRegressionChecks.cs" Link="Tests/PcgCoreRegressionChecks.cs" />
   </ItemGroup>
   <ItemGroup>

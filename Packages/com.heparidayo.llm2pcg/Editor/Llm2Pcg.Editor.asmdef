@@ -1,0 +1,6 @@
+{
+  "name": "Llm2Pcg.Editor",
+  "references": ["Llm2Pcg.Runtime"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}

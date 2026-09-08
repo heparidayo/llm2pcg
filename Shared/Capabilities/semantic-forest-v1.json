@@ -1,0 +1,71 @@
+{
+  "version": "semantic-forest@1",
+  "categories": {
+    "trees": {
+      "types": [
+        "broadleaf",
+        "cherry_blossom",
+        "conifer",
+        "willow",
+        "dead_tree"
+      ],
+      "defaults": [
+        "broadleaf",
+        "conifer"
+      ],
+      "minDistance": 4,
+      "densityPermille": 1000,
+      "maxCount": 600
+    },
+    "rocks": {
+      "types": [
+        "rock"
+      ],
+      "defaults": [
+        "rock"
+      ],
+      "minDistance": 4,
+      "densityPermille": 25,
+      "maxCount": 128
+    },
+    "bushes": {
+      "types": [
+        "bush"
+      ],
+      "defaults": [
+        "bush"
+      ],
+      "minDistance": 3,
+      "densityPermille": 35,
+      "maxCount": 160
+    },
+    "groundDetails": {
+      "types": [
+        "grass",
+        "flower",
+        "mushroom"
+      ],
+      "defaults": [
+        "grass",
+        "flower"
+      ],
+      "minDistance": 2,
+      "densityPermille": 70,
+      "maxCount": 400
+    },
+    "waterProps": {
+      "types": [
+        "reeds",
+        "lily_pad",
+        "water_lily"
+      ],
+      "defaults": [
+        "reeds",
+        "lily_pad"
+      ],
+      "minDistance": 2,
+      "densityPermille": 70,
+      "maxCount": 128
+    }
+  }
+}

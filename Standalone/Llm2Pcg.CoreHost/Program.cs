@@ -2,6 +2,12 @@ using System.Text.Json;
 using Llm2Pcg.Contract;
 using Llm2Pcg.Core;
 
+if (args.Contains("--v4-batch", StringComparer.Ordinal))
+{
+    Environment.ExitCode = V4Endpoints.RunBatch();
+    return;
+}
+
 if (args.Contains("--self-test", StringComparer.Ordinal))
 {
     Environment.ExitCode = CoreHostSelfTest.Run();
@@ -23,6 +29,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 WebApplication app = builder.Build();
 app.UseCors();
+V4Endpoints.Map(app);
 
 app.MapGet("/health", () => Results.Ok(new
 {
@@ -101,6 +108,7 @@ internal static class CoreHostSelfTest
             }
 
             Llm2Pcg.Tests.PcgCoreRegressionChecks.Run();
+            V4Endpoints.SelfTest();
             Console.WriteLine("Standalone CoreHost self-test: 7 world baselines and 7 Core regression groups passed.");
             return 0;
         }

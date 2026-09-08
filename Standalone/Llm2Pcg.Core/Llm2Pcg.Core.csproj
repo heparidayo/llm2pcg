@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <Compile Include="GeneratedWorldDocument.cs" />
+    <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Core/V4/*.cs" Link="Core/V4/%(Filename)%(Extension)" />
     <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Contract/PCGRequest.cs" Link="Contract/PCGRequest.cs" />
     <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Core/PcgDeterminism.cs" Link="Core/PcgDeterminism.cs" />
     <Compile Include="../../Packages/com.heparidayo.llm2pcg/Runtime/Core/PCGWorldContracts.cs" Link="Core/PCGWorldContracts.cs" />

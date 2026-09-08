@@ -1,0 +1,294 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "generatorVersion",
+    "resolverVersion",
+    "catalogVersion",
+    "worldType",
+    "seed",
+    "mapWidth",
+    "mapHeight",
+    "terrain",
+    "waterMode",
+    "spatialFeatures",
+    "route",
+    "distributionRules"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 4,
+      "maximum": 4,
+      "const": 4
+    },
+    "generatorVersion": {
+      "type": "string",
+      "enum": ["forest-biome@2", "desert-biome@2", "snowfield-biome@2", "swamp-biome@2"]
+    },
+    "resolverVersion": {
+      "type": "string",
+      "const": "pcg-resolver@1"
+    },
+    "catalogVersion": {
+      "type": "string",
+      "const": "semantic-forest@1"
+    },
+    "worldType": {
+      "type": "string",
+      "enum": ["Forest", "Desert", "Snowfield", "Swamp"]
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": -2147483648,
+      "maximum": 2147483647
+    },
+    "mapWidth": {
+      "type": "integer",
+      "minimum": 16,
+      "maximum": 500
+    },
+    "mapHeight": {
+      "type": "integer",
+      "minimum": 16,
+      "maximum": 500
+    },
+    "terrain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heightUnits",
+        "noiseScale",
+        "octaves",
+        "waterLevelUnits"
+      ],
+      "properties": {
+        "heightUnits": {
+          "type": "integer",
+          "minimum": 4,
+          "maximum": 256
+        },
+        "noiseScale": {
+          "type": "integer",
+          "minimum": 4,
+          "maximum": 256
+        },
+        "octaves": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "waterLevelUnits": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 128
+        }
+      }
+    },
+    "waterMode": {
+      "type": "string",
+      "enum": [
+        "Default",
+        "None"
+      ]
+    },
+    "spatialFeatures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "placement",
+          "orientation",
+          "radiusCells",
+          "widthCells",
+          "heightUnits",
+          "exclusive"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,31}$"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "Mountain",
+              "Lake",
+              "River"
+            ]
+          },
+          "placement": {
+            "type": "string",
+            "enum": [
+              "Center",
+              "North",
+              "South",
+              "East",
+              "West",
+              "Seeded",
+              "CenterCrossing"
+            ]
+          },
+          "orientation": {
+            "type": "string",
+            "enum": [
+              "None",
+              "NorthSouth",
+              "EastWest"
+            ]
+          },
+          "radiusCells": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 170
+          },
+          "widthCells": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          },
+          "heightUnits": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 128
+          },
+          "exclusive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "maxItems": 3
+    },
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "orientation",
+        "widthCells",
+        "crossingPolicy"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "None",
+            "StraightCrossing"
+          ]
+        },
+        "orientation": {
+          "type": "string",
+          "enum": [
+            "NorthSouth",
+            "EastWest"
+          ]
+        },
+        "widthCells": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "crossingPolicy": {
+          "type": "string",
+          "enum": [
+            "BridgeIfNeeded",
+            "NoCrossing"
+          ]
+        }
+      }
+    },
+    "distributionRules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "category",
+          "types",
+          "amountMode",
+          "densityPermille",
+          "maxCount",
+          "minDistanceCells",
+          "region",
+          "featureId",
+          "minDistanceToFeature",
+          "maxDistanceToFeature"
+        ],
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "trees",
+              "rocks",
+              "bushes",
+              "groundDetails",
+              "waterProps"
+            ]
+          },
+          "types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10
+          },
+          "amountMode": {
+            "type": "string",
+            "enum": [
+              "Off",
+              "RelativeDensity",
+              "AtMost"
+            ]
+          },
+          "densityPermille": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "maxCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "minDistanceCells": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 32
+          },
+          "region": {
+            "type": "string",
+            "enum": [
+              "WholeMap",
+              "Center",
+              "North",
+              "South",
+              "East",
+              "West",
+              "NearFeature"
+            ]
+          },
+          "featureId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "minDistanceToFeature": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 64
+          },
+          "maxDistanceToFeature": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 64
+          }
+        }
+      },
+      "maxItems": 5
+    }
+  }
+}

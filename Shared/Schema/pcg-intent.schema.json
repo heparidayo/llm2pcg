@@ -1,0 +1,313 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "intentVersion",
+    "worldType",
+    "seed",
+    "mapWidth",
+    "mapHeight",
+    "terrainPreset",
+    "waterMode",
+    "spatialFeatures",
+    "route",
+    "distributionRules",
+    "unsupported"
+  ],
+  "properties": {
+    "intentVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1,
+      "const": 1
+    },
+    "worldType": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "Forest",
+            "Desert",
+            "Snowfield",
+            "Swamp",
+            "City",
+            "Cave",
+            "Dungeon"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "seed": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "mapWidth": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 16,
+          "maximum": 500
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "mapHeight": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 16,
+          "maximum": 500
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "terrainPreset": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "Default",
+            "Dense"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "waterMode": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "Default",
+            "None"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "spatialFeatures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "placement",
+          "orientation",
+          "size",
+          "exclusive"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,31}$"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "Mountain",
+              "Lake",
+              "River"
+            ]
+          },
+          "placement": {
+            "type": "string",
+            "enum": [
+              "Center",
+              "North",
+              "South",
+              "East",
+              "West",
+              "Seeded",
+              "CenterCrossing"
+            ]
+          },
+          "orientation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "NorthSouth",
+                  "EastWest"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "Small",
+                  "Medium",
+                  "Large"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "exclusive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "maxItems": 3
+    },
+    "route": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "orientation",
+            "widthCells",
+            "crossingPolicy"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": [
+                "None",
+                "StraightCrossing"
+              ]
+            },
+            "orientation": {
+              "type": "string",
+              "enum": [
+                "NorthSouth",
+                "EastWest"
+              ]
+            },
+            "widthCells": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            "crossingPolicy": {
+              "type": "string",
+              "enum": [
+                "BridgeIfNeeded",
+                "NoCrossing"
+              ]
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "distributionRules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "category",
+          "types",
+          "amountMode",
+          "amount",
+          "region",
+          "featureId"
+        ],
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "trees",
+              "rocks",
+              "bushes",
+              "groundDetails",
+              "waterProps"
+            ]
+          },
+          "types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10
+          },
+          "amountMode": {
+            "type": "string",
+            "enum": [
+              "Off",
+              "RelativeDensity",
+              "AtMost"
+            ]
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "region": {
+            "type": "string",
+            "enum": [
+              "WholeMap",
+              "Center",
+              "North",
+              "South",
+              "East",
+              "West",
+              "NearFeature"
+            ]
+          },
+          "featureId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,31}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "maxItems": 5
+    },
+    "unsupported": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 160
+      },
+      "maxItems": 10
+    }
+  }
+}

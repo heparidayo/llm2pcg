@@ -13,7 +13,7 @@ const categories = {
     mushroom:["버섯","mushrooms?"], stump:["그루터기","stumps?"], log:["통나무","logs?"],
     branch:["가지","branches"], thorn:["가시덤불","thorns?"]
   }],
-  waterProps: [["수초","수변 소품","water props?"], {
+  waterProps: [["수초","수변 소품","수생식물","water props?","water plants?","aquatic plants?"], {
     reeds:["갈대","reeds"], lily_pad:["수련","lily pads?"], water_lily:["연꽃","water lil(?:y|ies)"]
   }]
 };
@@ -74,9 +74,9 @@ export function analyzePrompt(prompt) {
   const {text,tokens} = tokenizePrompt(prompt);
   const constraints = [], warnings = [];
   const add = (path,value,evidence) => constraints.push({path,value,evidence});
-  for (const match of text.matchAll(/(?:\bseed|시드)\s*(?:는|은|값)?\s*[:=]?\s*(-?\d+)(?![\d.])/g))
+  for (const match of text.matchAll(/(?:\bseed|시드)\s*(?:는|은|값)?\s*[:=]?\s*(-?\d+)(?!\d|\.\d)/g))
     add("seed",Number(match[1]),match[0]);
-  for (const match of text.matchAll(/(?<![\d.])(\d+)\s*[x×*]\s*(\d+)(?![\d.])/g)) {
+  for (const match of text.matchAll(/(?<![\d.])(\d+)\s*[x×*]\s*(\d+)(?!\d|\.\d)/g)) {
     add("mapWidth",Number(match[1]),match[0]); add("mapHeight",Number(match[2]),match[0]);
   }
   // Explicit algorithm threshold is not an area percentage and must not be silently clamped.

@@ -44,11 +44,29 @@ LLM2PCG는 JSON 요청을 기반으로 여러 형태의 월드를 생성하는 �
 
 시드 / 크기: 혼합림 234 / 96×96, 벚꽃 숲 234 / 64×64, 사막 311 / 96×96, 설원 412 / 96×96, 습지 513 / 64×64, 동굴 614 / 64×64, 도시 715 / 96×96, 던전 816 / 64×64. Seed만으로 동일 결과를 재현할 수는 없으며 최종 생성 요청과 같은 생성기 구현이 필요합니다.
 
+### 공간 구조·시각 분포 제어 (v4)
+
+128×128, Seed 234로 생성한 실제 Unity 기본 도형 프리뷰입니다. 외부 아트 에셋 없이 실행할 수 있습니다. [갤러리 예제 JSON](Shared/Examples/spatial-v4-gallery.json)에서 원하는 항목의 `request`를 별도 JSON으로 저장한 뒤 `/spatial-v4`에서 불러오면 재현할 수 있습니다.
+
+| 중앙 산 | 중앙 호수 외 수면 금지 |
+| --- | --- |
+| ![중앙 산](Media/Showcase/v4-forest-mountain-234-128.png) | ![전용 호수](Media/Showcase/v4-forest-exclusive-lake-234-128.png) |
+| 관통 강과 별도 교량 | 사막 호수 |
+| ![강과 교량](Media/Showcase/v4-forest-river-bridge-234-128.png) | ![사막 호수](Media/Showcase/v4-desert-exclusive-lake-234-128.png) |
+| 설원 중앙 산 | 습지 강과 교량 |
+| ![설원 산](Media/Showcase/v4-snowfield-mountain-234-128.png) | ![습지 강과 교량](Media/Showcase/v4-swamp-river-bridge-234-128.png) |
+| 유효 지면 전체에 벚꽃 | 강가에만 벚꽃 |
+| ![전체 벚꽃](Media/Showcase/v4-wholemap-cherry-234-128.png) | ![강가 벚꽃](Media/Showcase/v4-riverbank-cherry-234-128.png) |
+
+마지막 두 이미지는 Seed·강·나머지 조건을 유지하고 나무 배치 영역만 바꾼 비교입니다. 위 이미지는 확정 파라미터를 제어한 사례이며, 모든 자연어 입력의 해석 정확도를 보장하는 자료는 아닙니다.
+
 ## 현재 지원 범위
 
 - 자연어 해석과 직접 JSON 입력, 7종 월드 생성, 시각 카테고리의 종류·밀도·상한 제어를 지원합니다.
-- 시각 결과는 렌더러와 사용 가능한 프로필에 따라 다릅니다. 브라우저 데모는 Unity 시각 배치 제어의 일부를 구현하며, 같은 월드 데이터가 같은 프롭 배치·외관을 의미하지는 않습니다.
-- 중앙 산·지정 위치의 강·관통 도로 같은 공간 제어는 현재 비활성입니다. layoutSettings는 neutral 호환 값만 허용합니다.
+- 기존 v3는 7종 월드를 지원하며 `layoutSettings`는 neutral 호환 값만 허용합니다. 저장된 v3 요청을 자동으로 v4로 바꾸지 않습니다.
+- 실험적 v4는 숲·사막·설원·습지에서 종류별 산·호수·강 1개씩, 위치 지정, 중앙 관통 강, 호수 외 수면 금지, 길 없음, 직선 길과 별도 교량 레이어를 지원합니다.
+- v4의 공통 의미 배치로 종류·영역·Off·상대 밀도·최대 개수를 제어합니다. Unity와 Web은 같은 좌표·회전·크기를 소비하며 재질과 외관은 다릅니다. 기존 v3 브라우저의 시각 배치는 Unity 기능의 일부입니다.
+- 도시·동굴·던전 공간 제어, 정확 개수, 자유로운 공간 관계, 군집, 선인장·야자 모델, 보행 가능성 보장은 v4에서 지원하지 않습니다. 설원의 수면은 얼음 색상 표현이며, 걸을 수 있는 얼음으로 검증한 것은 아닙니다.
 - Core는 수치·타입 범위를 검증하고 world.diagnostics로 일부 생성 미충족 원인을 제공합니다.
 - 동일한 최종 요청과 생성기 구현을 재사용해 재현합니다. 같은 자연어를 LLM에 다시 입력하면 파라미터가 달라질 수 있습니다.
 
@@ -78,6 +96,8 @@ pwsh -File ./Scripts/Start-StandaloneWeb.ps1
 
 브라우저에서 `http://127.0.0.1:3000`을 엽니다. 기본 preset/direct 생성 과정은 로컬에서 동작하며 API key가 필요하지 않습니다. 두 프로세스를 종료하려면 터미널에서 `Ctrl+C`를 누릅니다.
 
+공간 제어는 `http://127.0.0.1:3000/spatial-v4`에서 예제 초안을 확정한 뒤 Web 3D 생성 버튼으로 확인합니다. 최종 JSON을 저장하면 해석 없이 재현할 수 있고, ‘새 Seed로 변형’은 LLM 호출 없이 Seed만 바꿉니다. 같은 요청 ID의 재전송은 현재 서버 프로세스 안에서 중복 처리하지 않으며, 재시작 이후 재현에는 저장 JSON이 필요합니다.
+
 선택적인 자연어 요청 변환 기능을 사용하려면 `Web/.env.example`을 `Web/.env`로 복사하고 본인의 server-side key를 입력하세요. 이 파일은 절대 commit하지 마세요.
 
 ## Unity 데모 실행
@@ -88,6 +108,10 @@ pwsh -File ./Scripts/Start-StandaloneWeb.ps1
 4. 화면의 world type과 seed를 선택합니다. `F1`을 누르면 1인칭 테스트 모드로 전환됩니다.
 
 샘플은 실행 중 카메라, 조명, 생성 pipeline과 fallback material을 구성합니다. 외부 아트 에셋은 필요하지 않습니다. HTTP Bridge는 패키지에서 기본 비활성화되어 있고 loopback 주소만 사용하며, 이 로컬 데모 씬이 `8088` 포트에서 명시적으로 시작합니다.
+
+v4는 Play Mode가 아닌 상태에서 **Tools → LLM2PCG → Experimental v4 → Start HTTP Preview**를 실행합니다. 별도 기본 도형 프리뷰가 loopback `8089`에서 최대 256×256 요청을 받으며 작업 중인 씬은 수정하지 않습니다. `/spatial-v4`의 Unity 생성 버튼을 사용하고, 종료할 때는 프리뷰 창을 닫습니다. Web/Core 데이터 생성은 최대 500×500을 지원합니다.
+
+v3 변환 제안은 `node Scripts/Propose-V4Migration.mjs saved-v3-request.json`으로 출력할 수 있습니다. 경고와 제안된 `request`를 검토해야 하며, 기존 파일을 덮어쓰거나 자동 생성하지 않습니다. 변환된 결과는 기존 월드의 동일 재현이 아니라 새로운 v4 월드입니다.
 
 ## Unity 패키지로 재사용
 
