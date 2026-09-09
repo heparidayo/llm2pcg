@@ -2,9 +2,17 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-LLM2PCG is a deterministic procedural world-generation system driven by natural language or structured requests. A validated JSON request selects one of seven generators and produces reproducible world data that can be rendered in a browser or inside Unity 6.
+LLM2PCG is a deterministic procedural content generation (PCG) system that creates 3D virtual worlds from natural language or directly configured parameters. An LLM translates the user's intent into compact generation parameters, while a pure C# core generates forests, deserts, snowfields, swamps, caves, cities and dungeons. The same resolved request, seed and generator version reproduce the same world.
 
-The Node.js middleware resolves and validates requests. A shared C# core generates world data for Unity and an independent Three.js browser renderer.
+Results can be viewed in a **browser (Three.js) or Unity 6**. **Unreal Engine integration is planned**; an Unreal adapter is not yet implemented.
+
+![LLM2PCG Forest with commercial assets — Seed 234, Unity first-person showcase](Media/Showcase/hero-seed234-forest.png)
+
+*A Unity showcase of an LLM2PCG-generated forest rendered with commercial assets, illustrating how generated terrain and object placements can be presented as a game environment.*
+
+Reproduction settings — **historical development capture**: seed `234` · `128×128` · `DefaultForest` · water threshold `.24` · noise octaves `4` · clearing radius `14` · vegetation distance/max `4/600` · elevation scale/frequency `6/.035` · default visual settings · F1 starting position · F2 UI hidden · world hash `E839AE91` · [Exact request JSON](Shared/Examples/legacy-seed234-forest.json)
+
+> The commercial assets and development scene shown above are not included in this repository. The public demo runs with primitive geometry and requires no external art assets. This historical request targets `forest-biome@1`, not the current v4 examples. Reproducing the same appearance requires the original generator implementation, assets and rendering settings. A matching world hash does not imply an identical image.
 
 ## Architecture
 

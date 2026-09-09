@@ -2,7 +2,17 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-LLM2PCG는 JSON 요청을 기반으로 여러 형태의 월드를 생성하는 결정론적 절차 생성(PCG) 프로젝트입니다. 같은 최종 요청과 생성기 구현을 사용하여 월드 데이터와 해시를 재현할 수 있으며, 결과는 브라우저 또는 Unity 6에서 확인할 수 있습니다.
+LLM2PCG는 자연어 또는 직접 설정한 파라미터로 3D 가상 월드를 만드는 결정론적 절차적 콘텐츠 생성(PCG) 시스템입니다. LLM이 제작 의도를 간결한 생성 파라미터로 해석하고, 순수 C# 코어가 숲·사막·설원·습지·동굴·도시·던전의 월드 데이터를 생성합니다. 같은 최종 요청과 Seed, 생성기 버전을 사용하면 같은 결과를 재현할 수 있습니다.
+
+생성 결과는 **브라우저(Three.js)와 Unity 6**에서 확인할 수 있으며, **Unreal Engine 연동도 지원 예정**입니다. Unreal 어댑터는 아직 구현되지 않았습니다.
+
+![상용 에셋을 적용한 LLM2PCG Forest — Seed 234, Unity 1인칭 시연](Media/Showcase/hero-seed234-forest.png)
+
+*LLM2PCG로 생성한 숲에 상용 에셋을 적용한 Unity 시연입니다. 생성된 지형과 오브젝트 배치를 실제 게임 환경으로 표현한 예시입니다.*
+
+재현 정보 — **개발 환경의 당시 촬영 기준**: Seed `234` · `128×128` · `DefaultForest` · water threshold `.24` · noise octaves `4` · clearing radius `14` · vegetation distance/max `4/600` · elevation scale/frequency `6/.035` · 기본 visual settings · F1 시작 위치 · F2 UI 숨김 · world hash `E839AE91` · [정확한 요청 JSON](Shared/Examples/legacy-seed234-forest.json)
+
+> 사진의 상용 에셋과 개발용 씬은 이 저장소에 포함되지 않습니다. 공개 데모는 외부 에셋 없이 기본 도형으로 실행할 수 있습니다. 위 요청은 과거 생성기 `forest-biome@1`의 촬영 설정이며 현재 v4 예제와는 다릅니다. 같은 화면을 재현하려면 당시 생성기 구현·에셋·렌더링 설정이 필요합니다. world hash는 이미지 자체의 일치를 의미하지 않습니다.
 
 ## 아키텍처
 
