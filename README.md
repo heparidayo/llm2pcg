@@ -17,30 +17,36 @@ Reproduction settings — **historical development capture**: seed `234` · `128
 ## Architecture
 
 ```text
-Natural-language prompt (optional OpenAI API integration)
-                         |
-                         v
-Browser UI ---> validated shared JSON contract
-                         |
-              +----------+----------+
-              |                     |
-              v                     v
-       .NET CoreHost         Unity loopback Bridge
-       pure generators       main-thread dispatcher
-              |                     |
-              v                     v
-       Three.js renderer     Unity mesh/instancing renderers
-              |                     |
-              +----------+----------+
-                         v
-        deterministic world hash + reproducible result
+Natural language --> LLM --> Node.js resolver
+                                  |
+Direct JSON / MCP --> Validated JSON + Seed
+                                  |
+               +------------------+------------------+
+               v                                     v
+        .NET CoreHost                       Unity loopback Bridge
+        Shared C# PCG Core                  Shared C# PCG Core
+               |                                     |
+        Generated world data                Unity mesh / instancing
+               |
+        +------+--------------------+
+        v                           : HTTP / world-data contract
+ Three.js renderer                  v
+                             Unreal C++ adapter [PLANNED]
+                                    :
+                                    v
+                             Unreal mesh / instancing [PLANNED]
+
+ Solid paths: implemented. Dotted paths: planned integration.
+ Replay: resolved request + Seed + matching generator implementation.
 ```
+
+The planned Unreal adapter will consume world data from .NET CoreHost rather than run C# inside Unreal or generate a second layout. This is the intended integration design, not a currently available feature or verified Unreal replay result.
 
 Supported worlds: Dungeon, Cave, Forest, City, Swamp, Snowfield, and Desert.
 
 ## Generation examples
 
-Actual Unity development captures from 2026-09-06. The visual assets, materials, and authored scene shown here are not included in this repository; the cloneable demo uses primitive fallbacks. These images illustrate generated environments, not complete fulfillment of every natural-language constraint.
+Actual Unity development captures; the cherry-blossom image was supplied on 2026-09-10, and the other images are from 2026-09-06. The visual assets, materials, and authored scene shown here are not included in this repository; the cloneable demo uses primitive fallbacks. These images illustrate generated environments, not complete fulfillment of every natural-language constraint.
 
 | Woodland | Cherry-blossom forest |
 | --- | --- |
@@ -52,7 +58,7 @@ Actual Unity development captures from 2026-09-06. The visual assets, materials,
 | City | Dungeon |
 | ![City](Media/Showcase/07-city-detail.png) | ![Dungeon](Media/Showcase/08-dungeon-detail.png) |
 
-Seed / size: woodland 234 / 96×96; cherry forest 234 / 64×64; desert 311 / 96×96; snowfield 412 / 96×96; swamp 513 / 64×64; cave 614 / 64×64; city 715 / 96×96; dungeon 816 / 64×64. A seed alone is insufficient for replay: retain the resolved request and matching generator implementation.
+Seed / size: woodland 234 / 96×96; desert 311 / 96×96; snowfield 412 / 96×96; swamp 513 / 64×64; cave 614 / 64×64; city 715 / 96×96; dungeon 816 / 64×64. The replacement cherry-blossom image has no supplied request metadata; the previous image's seed and size do not apply. A seed alone is insufficient for replay: retain the resolved request and matching generator implementation.
 
 ### Spatial and visual control (v4)
 
