@@ -2,15 +2,14 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-LLM2PCG is a deterministic procedural content generation (PCG) system that creates 3D virtual worlds from natural language or directly configured parameters. An LLM translates the user's intent into compact generation parameters, while a pure C# core generates forests, deserts, snowfields, swamps, caves, cities and dungeons. The same resolved request, seed and generator version reproduce the same world.
+LLM2PCG is a procedural content generation (PCG) project that creates 3D virtual worlds from a single natural-language sentence or manually configured settings.
 
-Results can be viewed in a **browser (Three.js) or Unity 6**. **Unreal Engine integration is planned**; an Unreal adapter is not yet implemented.
+The same resolved request, seed and generator version always reproduce the same result.
+
+Results can be viewed in a **browser (Three.js) or Unity 6**, with **Unreal Engine integration planned**.
 
 ![LLM2PCG Forest with commercial assets — Seed 234, Unity first-person showcase](Media/Showcase/hero-seed234-forest.png)
-
-*A Unity showcase of an LLM2PCG-generated forest rendered with commercial assets, illustrating how generated terrain and object placements can be presented as a game environment.*
-
-Reproduction settings — **historical development capture**: seed `234` · `128×128` · `DefaultForest` · water threshold `.24` · noise octaves `4` · clearing radius `14` · vegetation distance/max `4/600` · elevation scale/frequency `6/.035` · default visual settings · F1 starting position · F2 UI hidden · world hash `E839AE91` · [Exact request JSON](Shared/Examples/legacy-seed234-forest.json)
+Reproduction (settings used for the original development capture): seed `234` · `128×128` · `DefaultForest` · water threshold `.24` · noise octaves `4` · clearing radius `14` · vegetation distance/max `4/600` · elevation scale/frequency `6/.035` · default visual settings · F1 starting position · F2 UI hidden · world hash `E839AE91` · [Exact request JSON](Shared/Examples/legacy-seed234-forest.json)
 
 > The commercial assets and development scene shown above are not included in this repository. The public demo runs with primitive geometry and requires no external art assets. This historical request targets `forest-biome@1`, not the current v4 examples. Reproducing the same appearance requires the original generator implementation, assets and rendering settings. A matching world hash does not imply an identical image.
 
@@ -35,18 +34,16 @@ Direct JSON / MCP --> Validated JSON + Seed
                                     :
                                     v
                              Unreal mesh / instancing [PLANNED]
-
- Solid paths: implemented. Dotted paths: planned integration.
- Replay: resolved request + Seed + matching generator implementation.
 ```
 
-The planned Unreal adapter will consume world data from .NET CoreHost rather than run C# inside Unreal or generate a second layout. This is the intended integration design, not a currently available feature or verified Unreal replay result.
+Solid lines indicate implemented paths; dotted lines and `[PLANNED]` indicate planned integration. Unreal is planned to consume world data from .NET CoreHost through a C++ adapter and display it using meshes and instancing, rather than run the C# core inside the engine or regenerate placements. This does not indicate a currently available Unreal feature or verified Unreal replay results. Replay requires the resolved request, seed and matching generator implementation.
 
 Supported worlds: Dungeon, Cave, Forest, City, Swamp, Snowfield, and Desert.
+Planned worlds: ...
 
 ## Generation examples
 
-Actual Unity development captures; the cherry-blossom, desert, swamp and cave images are user-supplied replacements, and the other images are from 2026-09-06. The visual assets, materials, and authored scene shown here are not included in this repository; the cloneable demo uses primitive fallbacks. These images illustrate generated environments, not complete fulfillment of every natural-language constraint.
+Actual Unity demonstrations without commercial assets. The visual assets, materials and demonstration scenes shown here are not included in this repository; the demo available after cloning uses simple primitive geometry. These images illustrate a variety of generated environments, not an evaluation showing that every natural-language constraint has been fully satisfied.
 
 | Woodland | Cherry-blossom forest |
 | --- | --- |
@@ -137,15 +134,15 @@ An explicit v3 migration proposal can be printed with `node Scripts/Propose-V4Mi
 
 ## Reuse as a Unity package
 
-After a public tag exists, Unity Package Manager can install the package subfolder with a Git URL shaped like:
+Unity Package Manager can install the package subfolder using a Git URL in the following format. Replace `<tag>` with an actual tag to select a specific version.
 
 ```text
 https://github.com/heparidayo/llm2pcg.git?path=/Packages/com.heparidayo.llm2pcg#<tag>
 ```
 
-Until then, add `Packages/com.heparidayo.llm2pcg` from the clone as a local package.
+Alternatively, add `Packages/com.heparidayo.llm2pcg` from the clone as a local package.
 
-## Repository boundaries
+## Repository structure
 
 - `Packages/com.heparidayo.llm2pcg`: reusable Unity runtime and EditMode tests
 - `UnityDemo`: primitive-only Unity demonstration project
@@ -155,4 +152,8 @@ Until then, add `Packages/com.heparidayo.llm2pcg` from the clone as a local pack
 - `Shared`: versioned JSON Schema and JavaScript validation/defaults
 - `Scripts`: clone verification and local launcher
 
-A project-wide open-source license has not been added. The included screenshots do not grant rights to the depicted source assets.
+## License
+
+The project's original source code and accompanying software documentation are available under the [MIT License](LICENSE). You may use, modify and redistribute them, including commercially, provided you retain the copyright and license notices. The software is provided without warranty.
+
+Showcase screenshots and other media are excluded from the MIT grant; see [Asset and media license](ASSET_LICENSE.md). Their inclusion does not grant rights to the depicted source assets. Third-party software and assets remain subject to their own licenses; see [Third-party notices](THIRD_PARTY_NOTICES.md).

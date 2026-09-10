@@ -2,15 +2,14 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-LLM2PCG는 자연어 또는 직접 설정한 파라미터로 3D 가상 월드를 만드는 결정론적 절차적 콘텐츠 생성(PCG) 시스템입니다. LLM이 제작 의도를 간결한 생성 파라미터로 해석하고, 순수 C# 코어가 숲·사막·설원·습지·동굴·도시·던전의 월드 데이터를 생성합니다. 같은 최종 요청과 Seed, 생성기 버전을 사용하면 같은 결과를 재현할 수 있습니다.
+자연어 한 문장 또는 직접 설정으로 3D 가상 월드를 만드는 절차적 콘텐츠 생성(PCG) 프로젝트입니다.   
 
-생성 결과는 **브라우저(Three.js)와 Unity 6**에서 확인할 수 있으며, **Unreal Engine 연동도 지원 예정**입니다. Unreal 어댑터는 아직 구현되지 않았습니다.
+같은 최종 요청과 Seed, 생성기 버전을 사용하면 항상 같은 결과를 재현할 수 있습니다.   
+
+생성 결과는 **브라우저(Three.js)와 Unity 6**에서 확인할 수 있으며, **Unreal Engine 연동도 지원 예정**입니다. 
 
 ![상용 에셋을 적용한 LLM2PCG Forest — Seed 234, Unity 1인칭 시연](Media/Showcase/hero-seed234-forest.png)
-
-*LLM2PCG로 생성한 숲에 상용 에셋을 적용한 Unity 시연입니다. 생성된 지형과 오브젝트 배치를 실제 게임 환경으로 표현한 예시입니다.*
-
-재현 정보 — **개발 환경의 당시 촬영 기준**: Seed `234` · `128×128` · `DefaultForest` · water threshold `.24` · noise octaves `4` · clearing radius `14` · vegetation distance/max `4/600` · elevation scale/frequency `6/.035` · 기본 visual settings · F1 시작 위치 · F2 UI 숨김 · world hash `E839AE91` · [정확한 요청 JSON](Shared/Examples/legacy-seed234-forest.json)
+재현: (개발 환경의 당시 촬영 기준) Seed `234` · `128×128` · `DefaultForest` · water threshold `.24` · noise octaves `4` · clearing radius `14` · vegetation distance/max `4/600` · elevation scale/frequency `6/.035` · 기본 visual settings · F1 시작 위치 · F2 UI 숨김 · world hash `E839AE91` · [정확한 요청 JSON](Shared/Examples/legacy-seed234-forest.json)
 
 > 사진의 상용 에셋과 개발용 씬은 이 저장소에 포함되지 않습니다. 공개 데모는 외부 에셋 없이 기본 도형으로 실행할 수 있습니다. 위 요청은 과거 생성기 `forest-biome@1`의 촬영 설정이며 현재 v4 예제와는 다릅니다. 같은 화면을 재현하려면 당시 생성기 구현·에셋·렌더링 설정이 필요합니다. world hash는 이미지 자체의 일치를 의미하지 않습니다.
 
@@ -40,10 +39,11 @@ Direct JSON / MCP --> Validated JSON + Seed
 실선은 구현된 경로, 점선과 `[PLANNED]`는 구현 예정 경로입니다. Unreal은 C# 코어를 엔진 안에서 직접 실행하거나 배치를 다시 생성하는 대신, .NET CoreHost의 월드 데이터를 C++ 어댑터로 받아 메시·인스턴싱으로 표시하는 구조를 계획하고 있습니다. 아직 실행 가능한 Unreal 기능이나 재현성 검증 결과를 의미하지 않습니다. 재현 기준은 확정 요청 + Seed + 동일 생성기 구현입니다.
 
 지원 월드: Dungeon, Cave, Forest, City, Swamp, Snowfield, Desert.
+예정 월드: ...
 
 ## 생성 예시
 
-실제 Unity 개발 시연입니다. 벚꽃 숲·사막·늪·동굴은 새로 제공된 이미지로 교체했고, 나머지는 2026-09-06 캡처입니다. 이미지의 시각 에셋·재질·시연 씬은 이 저장소에 포함하지 않으며, clone 후 실행하는 기본 데모는 간단한 도형 기반으로 표시됩니다. 아래 이미지는 다양한 생성 결과의 예시이며, 모든 자연어 조건을 완전히 충족했다는 평가 자료는 아닙니다.
+상용 에셋 미적용시에 실제 Unity 시연입니다. 이미지의 시각 에셋·재질·시연 씬은 이 저장소에 포함하지 않으며, clone 후 실행하는 기본 데모는 간단한 도형 기반으로 표시됩니다. 아래 이미지는 다양한 생성 결과의 예시이며, 모든 자연어 조건을 완전히 충족했다는 평가 자료는 아닙니다.
 
 | 혼합림 | 벚꽃 숲 |
 | --- | --- |
@@ -152,4 +152,8 @@ https://github.com/heparidayo/llm2pcg.git?path=/Packages/com.heparidayo.llm2pcg#
 - `Shared`: version이 명시된 JSON Schema와 JavaScript validator/default
 - `Scripts`: clone 검증과 로컬 실행 스크립트
 
-프로젝트 전체의 오픈소스 라이선스는 아직 추가하지 않았습니다. 시연 이미지의 게재가 원본 에셋의 사용·재배포 권리를 부여하지는 않습니다.
+## 라이선스
+
+프로젝트가 작성한 소스 코드와 관련 소프트웨어 문서는 [MIT 라이선스](LICENSE)로 제공합니다. 저작권 및 라이선스 고지를 유지하면 상업적 이용을 포함해 사용·수정·재배포할 수 있습니다. 소프트웨어는 보증 없이 제공됩니다.
+
+시연 스크린샷과 기타 미디어는 MIT 적용 대상에서 제외하며, [에셋·미디어 라이선스](ASSET_LICENSE.md)를 따릅니다. 이미지의 게재가 원본 에셋의 사용·재배포 권리를 부여하지는 않습니다. 외부 소프트웨어와 에셋에는 각각의 라이선스가 적용됩니다. 자세한 내용은 [제3자 고지](THIRD_PARTY_NOTICES.md)를 확인하세요.

@@ -2,6 +2,7 @@
   "name": "com.heparidayo.llm2pcg",
   "displayName": "LLM2PCG",
   "version": "0.1.0-alpha.1",
+  "license": "MIT",
   "unity": "6000.0",
   "description": "Deterministic procedural world generators, Unity renderers, local bridge, and presentation components.",
   "author": {
