@@ -46,19 +46,19 @@ Supported worlds: Dungeon, Cave, Forest, City, Swamp, Snowfield, and Desert.
 
 ## Generation examples
 
-Actual Unity development captures; the cherry-blossom image was supplied on 2026-09-10, and the other images are from 2026-09-06. The visual assets, materials, and authored scene shown here are not included in this repository; the cloneable demo uses primitive fallbacks. These images illustrate generated environments, not complete fulfillment of every natural-language constraint.
+Actual Unity development captures; the cherry-blossom, desert, swamp and cave images are user-supplied replacements, and the other images are from 2026-09-06. The visual assets, materials, and authored scene shown here are not included in this repository; the cloneable demo uses primitive fallbacks. These images illustrate generated environments, not complete fulfillment of every natural-language constraint.
 
 | Woodland | Cherry-blossom forest |
 | --- | --- |
 | ![Woodland](Media/Showcase/01-woodland-detail.png) | ![Cherry-blossom forest](Media/Showcase/02-cherry-detail.png) |
-| Desert | Snowfield |
-| ![Desert](Media/Showcase/03-desert-detail.png) | ![Snowfield](Media/Showcase/04-snowfield-detail.png) |
-| Swamp | Cave |
-| ![Swamp](Media/Showcase/05-swamp-detail.png) | ![Cave](Media/Showcase/06-cave-detail.png) |
 | City | Dungeon |
 | ![City](Media/Showcase/07-city-detail.png) | ![Dungeon](Media/Showcase/08-dungeon-detail.png) |
+| Swamp | Cave (ceiling removed) |
+| ![Swamp](Media/Showcase/05-swamp-detail.png) | ![Cave (ceiling removed)](Media/Showcase/06-cave-detail.png) |
+| Desert | Snowfield |
+| ![Desert](Media/Showcase/03-desert-detail.png) | ![Snowfield](Media/Showcase/04-snowfield-detail.png) |
 
-Seed / size: woodland 234 / 96×96; desert 311 / 96×96; snowfield 412 / 96×96; swamp 513 / 64×64; cave 614 / 64×64; city 715 / 96×96; dungeon 816 / 64×64. The replacement cherry-blossom image has no supplied request metadata; the previous image's seed and size do not apply. A seed alone is insufficient for replay: retain the resolved request and matching generator implementation.
+Seed / size for unchanged captures: woodland 234 / 96×96; city 715 / 96×96; dungeon 816 / 64×64; snowfield 412 / 96×96. Request metadata was not supplied for the replacement cherry-blossom, desert, swamp or cave images, so their previous seed and size values are omitted. A seed alone is insufficient for replay: retain the resolved request and matching generator implementation.
 
 ### Spatial and visual control (v4)
 

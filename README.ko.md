@@ -43,19 +43,19 @@ Direct JSON / MCP --> Validated JSON + Seed
 
 ## 생성 예시
 
-실제 Unity 개발 시연입니다. 벚꽃 숲은 2026-09-10에 제공된 이미지로 교체했고, 나머지는 2026-09-06 캡처입니다. 이미지의 시각 에셋·재질·시연 씬은 이 저장소에 포함하지 않으며, clone 후 실행하는 기본 데모는 간단한 도형 기반으로 표시됩니다. 아래 이미지는 다양한 생성 결과의 예시이며, 모든 자연어 조건을 완전히 충족했다는 평가 자료는 아닙니다.
+실제 Unity 개발 시연입니다. 벚꽃 숲·사막·늪·동굴은 새로 제공된 이미지로 교체했고, 나머지는 2026-09-06 캡처입니다. 이미지의 시각 에셋·재질·시연 씬은 이 저장소에 포함하지 않으며, clone 후 실행하는 기본 데모는 간단한 도형 기반으로 표시됩니다. 아래 이미지는 다양한 생성 결과의 예시이며, 모든 자연어 조건을 완전히 충족했다는 평가 자료는 아닙니다.
 
 | 혼합림 | 벚꽃 숲 |
 | --- | --- |
 | ![Woodland](Media/Showcase/01-woodland-detail.png) | ![Cherry-blossom forest](Media/Showcase/02-cherry-detail.png) |
-| 사막 | 설원 |
-| ![Desert](Media/Showcase/03-desert-detail.png) | ![Snowfield](Media/Showcase/04-snowfield-detail.png) |
-| 습지 | 동굴 |
-| ![Swamp](Media/Showcase/05-swamp-detail.png) | ![Cave](Media/Showcase/06-cave-detail.png) |
 | 도시 | 던전 |
 | ![City](Media/Showcase/07-city-detail.png) | ![Dungeon](Media/Showcase/08-dungeon-detail.png) |
+| 늪 | 동굴(천장 제거) |
+| ![Swamp](Media/Showcase/05-swamp-detail.png) | ![동굴(천장 제거)](Media/Showcase/06-cave-detail.png) |
+| 사막 | 설원 |
+| ![Desert](Media/Showcase/03-desert-detail.png) | ![Snowfield](Media/Showcase/04-snowfield-detail.png) |
 
-시드 / 크기: 혼합림 234 / 96×96, 사막 311 / 96×96, 설원 412 / 96×96, 습지 513 / 64×64, 동굴 614 / 64×64, 도시 715 / 96×96, 던전 816 / 64×64. 교체한 벚꽃 숲 이미지의 요청 메타데이터는 제공되지 않아 이전 이미지의 Seed·크기를 표기하지 않았습니다. Seed만으로 동일 결과를 재현할 수는 없으며 최종 생성 요청과 같은 생성기 구현이 필요합니다.
+유지된 이미지의 시드 / 크기: 혼합림 234 / 96×96, 도시 715 / 96×96, 던전 816 / 64×64, 설원 412 / 96×96. 교체한 벚꽃 숲·사막·늪·동굴 이미지의 요청 메타데이터는 제공되지 않아 이전 이미지의 Seed·크기를 표기하지 않았습니다. Seed만으로 동일 결과를 재현할 수는 없으며 최종 생성 요청과 같은 생성기 구현이 필요합니다.
 
 ### 공간 구조·시각 분포 제어 (v4)
 
