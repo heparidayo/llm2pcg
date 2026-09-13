@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 3,
+  "generatorVersion": "forest-biome@1",
+  "seed": 234,
+  "worldType": "Forest",
+  "biome": "Temperate",
+  "generationProfile": "DefaultForest",
+  "mapWidth": 128,
+  "mapHeight": 128,
+  "generatorSettings": {
+    "dungeon": null,
+    "city": null,
+    "forest": {
+      "waterThreshold": 0.20000000298023224,
+      "noiseOctaves": 4,
+      "clearingRadius": 14,
+      "vegetationMinDistance": 4,
+      "vegetationMaxCount": 600,
+      "elevationScale": 6,
+      "elevationFrequency": 0.03500000014901161
+    },
+    "cave": null
+  },
+  "propSettings": {
+    "enabled": false,
+    "density": 0,
+    "maxCount": 0,
+    "allowedTypes": []
+  },
+  "visualSettings": {
+    "trees": {
+      "density": 1,
+      "maxCount": 0,
+      "allowedTypes": []
+    },
+    "rocks": {
+      "density": 1,
+      "maxCount": 0,
+      "allowedTypes": []
+    },
+    "bushes": {
+      "density": 1,
+      "maxCount": 0,
+      "allowedTypes": []
+    },
+    "groundDetails": {
+      "density": 1,
+      "maxCount": 0,
+      "allowedTypes": []
+    },
+    "waterProps": {
+      "density": 1,
+      "maxCount": 0,
+      "allowedTypes": []
+    }
+  },
+  "presentationSettings": {
+    "geometryMode": "Surface",
+    "propsEnabled": true
+  },
+  "layoutSettings": {
+    "landform": {
+      "kind": "None",
+      "placement": "Seeded",
+      "size": "Medium",
+      "intensity": "Medium"
+    },
+    "water": {
+      "kind": "Default",
+      "placement": "Seeded",
+      "size": "Medium",
+      "meander": "Low",
+      "exclusive": false
+    },
+    "route": {
+      "kind": "Default",
+      "placement": "Seeded",
+      "size": "Medium",
+      "orientation": "Seeded",
+      "meander": "Low"
+    }
+  },
+  "specialRooms": null
+}

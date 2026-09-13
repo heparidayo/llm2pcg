@@ -8,10 +8,12 @@ The same resolved request, seed and generator version always reproduce the same 
 
 Results can be viewed in a **browser (Three.js) or Unity 6**, with **Unreal Engine integration planned**.
 
-![LLM2PCG Forest with commercial assets — Seed 234, Unity first-person showcase](Media/Showcase/hero-seed234-forest.png)
-Reproduction (settings used for the original development capture): seed `234` · `128×128` · `DefaultForest` · water threshold `.24` · noise octaves `4` · clearing radius `14` · vegetation distance/max `4/600` · elevation scale/frequency `6/.035` · default visual settings · F1 starting position · F2 UI hidden · world hash `E839AE91` · [Exact request JSON](Shared/Examples/legacy-seed234-forest.json)
+![LLM2PCG Forest with detailed trees and a cloud skybox — Seed 234, Unity showcase](Media/Showcase/hero-seed234-forest.png)
+Capture: `2026-09-13` · Unity `6000.5.10f1` · seed `234` · `128×128` · `DefaultForest` · water threshold `.20` · noise octaves `4` · clearing radius `14` · vegetation distance/max `4/600` · elevation scale/frequency `6/.035` · default visual settings · `Surface + props` · world hash `5979C289` · [Exact request JSON](Shared/Examples/showcase-seed234-forest-20260913.json)
 
-> The commercial assets and development scene shown above are not included in this repository. The public demo runs with primitive geometry and requires no external art assets. This historical request targets `forest-biome@1`, not the current v4 examples. Reproducing the same appearance requires the original generator implementation, assets and rendering settings. A matching world hash does not imply an identical image.
+Camera: `1920×1080`, perspective FOV `60°`, position `(64,9,42)`, rotation `(2,335,0)`, UI hidden. Appearance: `forest.default` profile, visual layout hash `773E2BD3`, panoramic cloud skybox (rotation `110°`, exposure `1.13`).
+
+> The commercial assets, skybox and development scene shown above are not included in this repository. The public demo runs with primitive geometry and requires no external art assets. This capture uses the v3 `forest-biome@1` path; the v4 examples use a separate path. Reproducing the same appearance requires the matching generator implementation, assets and rendering settings. A matching world hash does not imply an identical image.
 
 ## Architecture
 

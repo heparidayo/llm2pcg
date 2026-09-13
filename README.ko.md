@@ -8,10 +8,12 @@
 
 생성 결과는 **브라우저(Three.js)와 Unity 6**에서 확인할 수 있으며, **Unreal Engine 연동도 지원 예정**입니다. 
 
-![상용 에셋을 적용한 LLM2PCG Forest — Seed 234, Unity 1인칭 시연](Media/Showcase/hero-seed234-forest.png)
-재현: (개발 환경의 당시 촬영 기준) Seed `234` · `128×128` · `DefaultForest` · water threshold `.24` · noise octaves `4` · clearing radius `14` · vegetation distance/max `4/600` · elevation scale/frequency `6/.035` · 기본 visual settings · F1 시작 위치 · F2 UI 숨김 · world hash `E839AE91` · [정확한 요청 JSON](Shared/Examples/legacy-seed234-forest.json)
+![상세 나무와 구름 스카이박스를 적용한 LLM2PCG Forest — Seed 234, Unity 시연](Media/Showcase/hero-seed234-forest.png)
+촬영: `2026-09-13` · Unity `6000.5.10f1` · Seed `234` · `128×128` · `DefaultForest` · water threshold `.20` · noise octaves `4` · clearing radius `14` · vegetation distance/max `4/600` · elevation scale/frequency `6/.035` · 기본 visual settings · `Surface + props` · world hash `5979C289` · [정확한 요청 JSON](Shared/Examples/showcase-seed234-forest-20260913.json)
 
-> 사진의 상용 에셋과 개발용 씬은 이 저장소에 포함되지 않습니다. 공개 데모는 외부 에셋 없이 기본 도형으로 실행할 수 있습니다. 위 요청은 과거 생성기 `forest-biome@1`의 촬영 설정이며 현재 v4 예제와는 다릅니다. 같은 화면을 재현하려면 당시 생성기 구현·에셋·렌더링 설정이 필요합니다. world hash는 이미지 자체의 일치를 의미하지 않습니다.
+카메라: `1920×1080`, perspective FOV `60°`, 위치 `(64,9,42)`, 회전 `(2,335,0)`, UI 숨김. 외관: `forest.default` 프로필, visual layout hash `773E2BD3`, 파노라마 구름 스카이박스(회전 `110°`, 노출 `1.13`).
+
+> 사진의 상용 에셋·스카이박스·개발용 씬은 이 저장소에 포함되지 않습니다. 공개 데모는 외부 에셋 없이 기본 도형으로 실행할 수 있습니다. 이 사진은 v3 `forest-biome@1` 경로로 촬영했으며 v4 예제는 별도 경로를 사용합니다. 같은 화면을 재현하려면 일치하는 생성기 구현·에셋·렌더링 설정이 필요합니다. world hash는 이미지 자체의 일치를 의미하지 않습니다.
 
 ## 아키텍처
 
